@@ -1,0 +1,79 @@
+// Copyright © 2019 yellowsea <hh1271941291@gmail.com>
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package pb;
+
+// designed to be shared between all app protocols
+message MessageData {
+    // shared between all requests
+    string clientVersion = 1; // client version
+    int64 timestamp = 2; // unix time
+    string id = 3; // allows requesters to use request data when processing a response
+    bool gossip = 4; // true to have receiver peer gossip the message to neighbors
+    string nodeId = 5; // id of node that created the message (not the peer that may have sent it). =base58(multihash(nodePubKey))
+    bytes nodePubKey = 6; // Authoring node Secp256k1 public key (32bytes) - protobufs serielized
+    bytes sign = 7; // signature of message data + method specific data by message authoring node.
+}
+
+message UploadQueryRequest {
+    MessageData messageData = 1;
+    string tag = 2; // the tag of file
+    int64 size = 3; // the size of file
+}
+
+message UploadQueryResponse {
+    MessageData messageData = 1;
+    string tag = 2; // the tag of request
+}
+
+message UploadRequest {
+    MessageData messageData = 1;
+    string tag = 2; // hash(path + name)
+    int64 packageId = 3; // the id of data package
+    bytes data = 4; // the data of file
+}
+
+message UploadResponse {
+    MessageData messageData = 1;
+    string tag = 2; // hash(path + name)
+    int64 packageId = 3; // the id of data package
+    string hash = 4; // hash(data)
+}
+
+message OperationRequest {
+    MessageData messageData = 1;
+    string tag = 2; // hash(path + name)
+    bytes operation = 3; // the operation grant for sea
+}
+
+message DownloadRequest {
+    MessageData messageData = 1;
+    string owner = 2; // the owner's public key of file
+    string hash = 3; // the hash of file
+}
+
+message DownloadResponse {
+    MessageData messageData = 1;
+    string hash = 2; // the hash of file
+    int64 packageId = 3; // the id of data package
+    bytes data = 4; // the data of file
+}
+
+message DownloadConfirm {
+    MessageData messageData = 1;
+    string hash = 2;
+    int64 packageId = 3;
+}
