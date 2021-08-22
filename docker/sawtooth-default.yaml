@@ -41,12 +41,14 @@ services:
   healthcare-system-tp:
     image: hyperledger/healthcare-system-tp
     container_name: healthcare-system-tp
+    expose:
+      - 4004
     build:
-      dockerfile: tp/Dockerfile
-      context: ../..
+      dockerfile: docker/tp/Dockerfile
+      context: ../
     depends_on:
       - validator
-    entrypoint: /app/tp -vv -C tcp://validator:4004
+    entrypoint: /app/main -vv -C tcp://validator:4004
 
   validator:
     image: hyperledger/sawtooth-validator:1.1
