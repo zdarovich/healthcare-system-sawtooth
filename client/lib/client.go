@@ -400,7 +400,7 @@ func (cf *ClientFramework) generateZmqConnection() error {
 	return nil
 }
 
-// GenerateKey generate key pair (Secp256k1) and store them in the storage path.
+// GenerateKey generate key pair (Secp256k1) and store them in the client path.
 func GenerateKey(keyName string, keyPath string) {
 	cont := signing.NewSecp256k1Context()
 	pri := cont.NewRandomPrivateKey()

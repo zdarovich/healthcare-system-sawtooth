@@ -26,15 +26,15 @@ var (
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   lib.FamilyName,
-	Short: "Decentralized cloud storage application",
-	Long: `SeaStorage is a decentralized cloud storage application.
+	Short: "Decentralized cloud client application",
+	Long: `SeaStorage is a decentralized cloud client application.
 This application is a tool for store files on a P2P
 network based on Hyperledger Sawtooth.`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	Run: func(cmd *cobra.Command, args []string) {
 		if version {
-			fmt.Println("SeaStorage (Decentralized File storage system)")
+			fmt.Println("SeaStorage (Decentralized File client system)")
 			fmt.Println("Version: " + lib.FamilyVersion)
 			return
 		}

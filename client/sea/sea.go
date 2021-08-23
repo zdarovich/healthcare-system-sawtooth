@@ -38,7 +38,7 @@ import (
 	tpSea "healthcare-system-sawtooth/tp/sea"
 )
 
-// Client provides the platform for sea providing the storage resources in the P2P network.
+// Client provides the platform for sea providing the client resources in the P2P network.
 type Client struct {
 	Sea *tpSea.Sea
 	*lib.ClientFramework
@@ -82,7 +82,7 @@ func (c *Client) Sync() error {
 	return nil
 }
 
-// Bootstrap start the node process for providing storage resources.
+// Bootstrap start the node process for providing client resources.
 func (c *Client) Bootstrap(keyFile, storagePath string, size int64, bootstrapAddrs []ma.Multiaddr) {
 	priv, _ := ioutil.ReadFile(keyFile)
 	privateKey, err := p2pCrypto.UnmarshalSecp256k1PrivateKey(tpCrypto.HexToBytes(string(priv)))

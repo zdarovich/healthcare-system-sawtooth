@@ -41,6 +41,7 @@ var userCommands = []string{
 	"download",
 	"download-shared",
 	"exit",
+	"add-data",
 }
 
 var (
@@ -166,7 +167,6 @@ communicating with the transaction processor.`,
 					for addr := range cli.QueryCache {
 						fmt.Println("Address: ", addr)
 					}
-					return
 				} else if len(commands) == 2 {
 					if commands[1] == "next" {
 						err := cli.ListUsersShared(true)

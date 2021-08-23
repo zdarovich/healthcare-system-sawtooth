@@ -29,9 +29,9 @@ var (
 	TPURL string
 	// ValidatorURL is the Hyperledger Sawtooth validator tcp url.
 	ValidatorURL string
-	// StoragePath is the path that provided storage resources by sea.
+	// StoragePath is the path that provided client resources by sea.
 	StoragePath string
-	// StorageSize is the limit size of the storage resources.
+	// StorageSize is the limit size of the client resources.
 	StorageSize int64
 	// ListenAddress is the address and port used for joining P2P network and listening for protobuf.
 	ListenAddress []string
@@ -42,8 +42,8 @@ var (
 const (
 	// Config Variable
 
-	// FamilyName is the SeaStorage's transaction identity.
-	FamilyName string = "SeaStorage"
+	// FamilyName is the healthcare-system transaction identity.
+	FamilyName string = "healthcare-system"
 	// FamilyVersion is the version of SeaStorage's transaction.
 	FamilyVersion string = "1.0"
 	// DefaultTmpPath is used for storing temp file.
@@ -108,9 +108,9 @@ var (
 	DefaultDataShards = 5
 	// DefaultParShards is the number of parity shard in RS erasure coding.
 	DefaultParShards = 3
-	// DefaultStoragePath is the default path for providing storage resources.
+	// DefaultStoragePath is the default path for providing client resources.
 	DefaultStoragePath string
-	// DefaultStorageSize is the default limit size of storage resources.
+	// DefaultStorageSize is the default limit size of client resources.
 	DefaultStorageSize int64 = 1024 * 1024 * 1024
 	// DefaultBootstrapAddrs is the default addresses for joining P2P network.
 	DefaultBootstrapAddrs = []string{
@@ -128,6 +128,6 @@ func init() {
 	DefaultConfigPath = path.Join(homeDir, ".SeaStorage")
 	DefaultKeyPath = path.Join(DefaultConfigPath, "keys")
 	DefaultPrivateKeyFile = path.Join(DefaultKeyPath, "SeaStorage.priv")
-	DefaultStoragePath = path.Join(DefaultConfigPath, "storage")
+	DefaultStoragePath = path.Join(DefaultConfigPath, "client")
 	DefaultLogPath = path.Join(DefaultConfigPath, "log")
 }

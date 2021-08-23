@@ -31,7 +31,7 @@ import (
 	tpUser "healthcare-system-sawtooth/tp/user"
 )
 
-// SeaNode is the P2P network node for sea providing storage.
+// SeaNode is the P2P network node for sea providing client.
 type SeaNode struct {
 	*lib.ClientFramework
 	storagePath string
@@ -71,7 +71,7 @@ func NewSeaNode(ctx context.Context, c *lib.ClientFramework, storagePath string,
 			return nil, err
 		}
 		if totalSize > size {
-			return nil, errors.New("the storage pubSize is not enough")
+			return nil, errors.New("the client pubSize is not enough")
 		}
 		freeSize = size - totalSize
 	}

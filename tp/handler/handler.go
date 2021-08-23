@@ -61,6 +61,8 @@ func (h *Handler) Apply(request *processor_pb2.TpProcessRequest, context *proces
 		}
 		return st.CreateSea(pl.Target[0], user)
 
+	case payload.UserCreateDirectory:
+		return st.UserCreateDirectory(pl.Name, user, pl.PWD)
 	case payload.UserCreateFile:
 		return st.UserCreateFile(pl.Name, user, pl.PWD, pl.FileInfo)
 	case payload.UserUpdateFileData:

@@ -34,6 +34,8 @@ func GenerateFileInfo(target, publicKey, keyAes string, dataShards, parShards in
 	if err != nil {
 		return
 	}
+	err = os.Mkdir(lib.DefaultTmpPath, 0755)
+
 	outFile, err := os.OpenFile(path.Join(lib.DefaultTmpPath, inFileInfo.Name()+lib.EncryptSuffix), os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		return
@@ -347,5 +349,11 @@ func CalFileHash(f *os.File) (hash string, err error) {
 		hashes = append(hashes, crypto.SHA512BytesFromBytes(buf[:n]))
 	}
 	hash = crypto.SHA512HexFromBytes(bytes.Join(hashes, []byte{}))
+	return
+}
+
+// CalDataHash calculate the hash of data.
+func CalDataHash(data string) (hash string, err error) {
+	hash = crypto.SHA512HexFromBytes([]byte(data))
 	return
 }

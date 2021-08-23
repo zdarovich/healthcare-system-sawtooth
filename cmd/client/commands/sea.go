@@ -52,6 +52,6 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// seaCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	seaCmd.Flags().StringVarP(&lib.StoragePath, "path", "P", lib.DefaultStoragePath, "the path for storage")
-	seaCmd.Flags().Int64VarP(&lib.StorageSize, "size", "s", lib.DefaultStorageSize, "the size for storage")
+	seaCmd.Flags().StringVarP(&lib.StoragePath, "path", "P", lib.DefaultStoragePath, "the path for client")
+	seaCmd.Flags().Int64VarP(&lib.StorageSize, "size", "s", lib.DefaultStorageSize, "the size for client")
 }
