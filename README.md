@@ -8,7 +8,7 @@ export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:/usr/local/opt/openssl/lib/pkgco
 
 ## Run sea from local
 ```
-go run cmd/client/main.go user -n redax -u localhost:8008 -V tcp://localhost:4004 -k resources/keys/redax.priv -d true -b /ip4/0.0.0.0/tcp/5001/p2p/16Uiu2HAkwxu3JAoqZ7QQ343hQuADCbkqfimCNRTnqQgoUpvoKEty
+go run cmd/client/main.go user -n redax -u localhost:8008 -V tcp://localhost:4004 -k resources/keys/redax.priv
 ```
 
 ## Run go client from local

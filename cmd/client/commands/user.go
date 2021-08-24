@@ -18,6 +18,7 @@ var userCommands = []string{
 	"sync",
 	"whoami",
 	"create",
+	"share",
 	"ls",
 	"ls-users",
 	"ls-shared",
@@ -124,7 +125,17 @@ communicating with the transaction processor.`,
 						fmt.Println(err)
 					}
 				}
-
+			case "share":
+				if len(commands) < 3 {
+					fmt.Println(errMissingOperand)
+				} else if len(commands) > 3 {
+					fmt.Println(errInvalidPath)
+				} else {
+					err = cli.ShareData(commands[1], commands[2])
+					if err != nil {
+						fmt.Println(err)
+					}
+				}
 			case "get":
 				if len(commands) < 2 {
 					fmt.Println(errMissingOperand)

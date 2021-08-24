@@ -167,7 +167,7 @@ func (d *Repo) checkDataExists(hash, addr string) (*Data, error) {
 			}
 		}
 	}
-	return nil, errors.New("Data doesn't exists: " + hash)
+	return nil, nil
 }
 
 // List information of INodes in the path.

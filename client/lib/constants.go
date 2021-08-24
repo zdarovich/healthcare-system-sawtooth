@@ -61,7 +61,7 @@ const (
 	// ContentTypeOctetStream is the content type for request.
 	ContentTypeOctetStream string = "application/octet-stream"
 	// Mongo connection url
-	MongoDbUrl string = "mongodb://mongodb:27017"
+	MongoDbUrl string = "mongodb://localhost:27017"
 	// Mongo db name
 	MongoDbName string = "healthcare"
 

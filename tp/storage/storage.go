@@ -80,13 +80,16 @@ func (root *Root) PublishKey(publicKey, keyIndex, key string) error {
 	return root.Keys.PublishKey(publicKey, keyIndex, key)
 }
 
-func (root *Root) GetData(hash, addr string) (data DataInfo, err error) {
+func (root *Root) GetData(hash, addr string) (data *DataInfo, err error) {
 	f, err := root.Repo.checkDataExists(hash, addr)
 	if err != nil {
-		return
+		return nil, err
+	}
+	if f == nil {
+		return nil, nil
 	}
 	key := root.Keys.GetKey(f.KeyIndex)
-	return *NewDataInfo(f.Name, f.Size, f.Hash, key.Key, addr), nil
+	return NewDataInfo(f.Name, f.Size, f.Hash, key.Key, addr), nil
 }
 
 func (root *Root) List(p string) (iNodes []INodeInfo, err error) {

@@ -101,35 +101,6 @@ services:
         tail -f /dev/null \
         \""
 
-  healthcare-client-1:
-    image: hyperledger/healthcare-client
-    container_name: healthcare-user-client-1
-    expose:
-      - 5001
-    ports:
-      - "5001:5001"
-    build:
-      dockerfile: docker/client/Dockerfile
-      context: ../
-    depends_on:
-      - validator
-    entrypoint: /app/main sea -n user_a -u rest-api:8008 -V tcp://validator:4004 -k resources/keys/a.priv -d true -l /ip4/0.0.0.0/tcp/5001 -b /ip4/0.0.0.0/tcp/5002/p2p/16Uiu2HAmDhP9i7H5UD4EBysVrn2NrjPeC5poE134AQFfUFgL3yTG
-
-
-  healthcare-client-2:
-    image: hyperledger/healthcare-client
-    container_name: healthcare-user-client-2
-    expose:
-      - 5002
-    ports:
-      - "5002:5002"
-    build:
-      dockerfile: docker/client/Dockerfile
-      context: ../
-    depends_on:
-      - validator
-    entrypoint: /app/main sea -n user_b -u rest-api:8008 -V tcp://validator:4004 -k resources/keys/b.priv -d true -l /ip4/0.0.0.0/tcp/5002 -b /ip4/172.24.0.1/tcp/5001/p2p/16Uiu2HAmLJ8oWvBLhZAb9uQuXLqKfXBVAJW1rUfi6BEg5e7eXfHj
-
   mongodb:
     image: "mongo:latest"
     restart: unless-stopped

@@ -5,9 +5,7 @@ import (
 	"encoding/gob"
 	"github.com/golang/protobuf/proto"
 	"github.com/hyperledger/sawtooth-sdk-go/processor"
-	"healthcare-system-sawtooth/tp/sea"
 	"healthcare-system-sawtooth/tp/storage"
-	"healthcare-system-sawtooth/tp/user"
 )
 
 const _ = proto.ProtoPackageIsVersion3
@@ -25,25 +23,12 @@ var (
 )
 
 type SeaStoragePayload struct {
-	Action         uint             `default:"Unset(0)"`
-	Name           string           `default:""`
-	PWD            string           `default:"/"`
-	Target         []string         `default:"nil"`
-	Key            string           `default:""`
-	DataInfo       storage.DataInfo `default:"DataInfo{}"`
-	UserOperations []user.Operation `default:"nil"`
-}
-
-func NewSeaStoragePayload(action uint, name string, PWD string, target []string, key string, fileInfo storage.DataInfo, userOperations []user.Operation, seaOperations []sea.Operation) *SeaStoragePayload {
-	return &SeaStoragePayload{
-		Action:         action,
-		Name:           name,
-		PWD:            PWD,
-		Target:         target,
-		Key:            key,
-		DataInfo:       fileInfo,
-		UserOperations: userOperations,
-	}
+	Action   uint             `default:"Unset(0)"`
+	Name     string           `default:""`
+	PWD      string           `default:"/"`
+	Target   []string         `default:"nil"`
+	Key      string           `default:""`
+	DataInfo storage.DataInfo `default:"DataInfo{}"`
 }
 
 func SeaStoragePayloadFromBytes(payloadData []byte) (*SeaStoragePayload, error) {

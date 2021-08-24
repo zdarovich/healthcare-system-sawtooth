@@ -25,7 +25,7 @@ func GenerateDataInfo(name, target, publicKey, username, keyAes string) (info tp
 	data := &db.Data{
 		Name:    name,
 		Hash:    hash,
-		Payload: string(out),
+		Payload: crypto.BytesToHex(out),
 	}
 	_, err = data.Save()
 	if err != nil {

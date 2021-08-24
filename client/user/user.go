@@ -103,9 +103,12 @@ func (c *Client) CreatePatientData(name, data string) error {
 		return err
 	}
 	// Check Destination Path exists
-	_, err = c.User.Root.GetData(hash, c.User.Name)
+	di, err := c.User.Root.GetData(hash, c.User.Name)
 	if err != nil {
 		return err
+	}
+	if di != nil {
+		return errors.New("data exist already")
 	}
 	keyAES := tpCrypto.GenerateRandomAESKey(lib.AESKeySize)
 	info, err := crypto.GenerateDataInfo(name, data, c.GetPublicKey(), c.User.Name, tpCrypto.BytesToHex(keyAES))
@@ -134,6 +137,9 @@ func (c *Client) GetPatientData(hash string) (string, error) {
 	di, err := c.User.Root.GetData(hash, c.User.Name)
 	if err != nil {
 		return "", err
+	}
+	if di == nil {
+		return "", errors.New("data doesn't exist")
 	}
 	ctx := context.Background()
 	d, err := db.GetByHash(ctx, hash)
@@ -165,6 +171,9 @@ func (c *Client) GetSharedPatientData(hash, username string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	if di == nil {
+		return "", errors.New("data doesn't exist")
+	}
 	keyAES, err := c.DecryptFileKey(di.Key)
 	if err != nil {
 		return "", err
@@ -186,6 +195,9 @@ func (c *Client) ShareData(hash, username string) error {
 	di, err := c.User.Root.GetData(hash, c.User.Name)
 	if err != nil {
 		return err
+	}
+	if di == nil {
+		return errors.New("data doesn't exist")
 	}
 	addresses := []string{c.GetAddress()}
 
