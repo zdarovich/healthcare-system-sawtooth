@@ -68,7 +68,7 @@ func (sss *SeaStorageState) CreateUser(username string, publicKey string) error 
 	if len(results[address]) > 0 {
 		return &processor.InvalidTransactionError{Msg: "user exists"}
 	}
-	return sss.saveUser(user.GenerateUser(publicKey), address)
+	return sss.saveUser(user.GenerateUser(username, publicKey), address)
 }
 
 func (sss *SeaStorageState) saveUser(u *user.User, address string) error {
