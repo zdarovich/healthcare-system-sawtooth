@@ -60,6 +60,10 @@ const (
 	PackageSize int64 = 128 * 1024 * 1024
 	// ContentTypeOctetStream is the content type for request.
 	ContentTypeOctetStream string = "application/octet-stream"
+	// Mongo connection url
+	MongoDbUrl string = "mongodb://mongodb:27017"
+	// Mongo db name
+	MongoDbName string = "healthcare"
 
 	// APIs
 

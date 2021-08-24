@@ -129,3 +129,16 @@ services:
     depends_on:
       - validator
     entrypoint: /app/main sea -n user_b -u rest-api:8008 -V tcp://validator:4004 -k resources/keys/b.priv -d true -l /ip4/0.0.0.0/tcp/5002 -b /ip4/172.24.0.1/tcp/5001/p2p/16Uiu2HAmLJ8oWvBLhZAb9uQuXLqKfXBVAJW1rUfi6BEg5e7eXfHj
+
+  mongodb:
+    image: "mongo:latest"
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - "mongodb_data:/data/db"
+      - "mongodb_config:/data/configdb"
+
+volumes:
+  mongodb_config:
+  mongodb_data:

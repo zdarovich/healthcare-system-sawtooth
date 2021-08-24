@@ -23,7 +23,6 @@ import (
 	"net/http"
 	"strings"
 
-	tpSea "healthcare-system-sawtooth/tp/sea"
 	tpState "healthcare-system-sawtooth/tp/state"
 )
 
@@ -61,32 +60,6 @@ func ListAll(start string, limit uint) ([]interface{}, error) {
 // ListUsers returns the list of data that address started with the UserNamespace.
 func ListUsers(start string, limit uint) ([]interface{}, error) {
 	return list(tpState.Namespace+tpState.UserNamespace, start, limit)
-}
-
-// ListSeas returns the list of data that address started with the SeaNamespace.
-func ListSeas(start string, limit uint) ([]interface{}, error) {
-	return list(tpState.Namespace+tpState.SeaNamespace, start, limit)
-}
-
-// ListSeasPublicKey returns the list of sea's public key.
-func ListSeasPublicKey(start string, limit uint) ([]string, error) {
-	seas, err := ListSeas(start, limit)
-	if err != nil {
-		return nil, err
-	}
-	result := make([]string, 0)
-	for i := range seas {
-		seaBytes, err := base64.StdEncoding.DecodeString(seas[i].(map[string]interface{})["data"].(string))
-		if err != nil {
-			continue
-		}
-		s, err := tpSea.SeaFromBytes(seaBytes)
-		if err != nil {
-			continue
-		}
-		result = append(result, s.PublicKey)
-	}
-	return result, nil
 }
 
 // sendRequest send the request to the Hyperledger Sawtooth rest api by giving url.

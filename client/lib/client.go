@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"math"
 	"math/rand"
 	"os"
 	"path"
@@ -26,7 +25,6 @@ import (
 	tpCrypto "healthcare-system-sawtooth/crypto"
 	tpPayload "healthcare-system-sawtooth/tp/payload"
 	tpState "healthcare-system-sawtooth/tp/state"
-	tpUser "healthcare-system-sawtooth/tp/user"
 )
 
 // The Category of ClientFramework.
@@ -115,22 +113,16 @@ func (cf *ClientFramework) GetData() ([]byte, error) {
 
 // GetAddress returns the address of user or sea.
 func (cf *ClientFramework) GetAddress() string {
-	if cf.Category {
-		return tpState.MakeAddress(tpState.AddressTypeUser, cf.Name, cf.signer.GetPublicKey().AsHex())
-	}
-	return tpState.MakeAddress(tpState.AddressTypeSea, cf.Name, cf.signer.GetPublicKey().AsHex())
+	return tpState.MakeAddress(tpState.AddressTypeUser, cf.Name, cf.signer.GetPublicKey().AsHex())
+}
+
+func (cf *ClientFramework) GetUserAddress(name, publicKey string) string {
+	return tpState.MakeAddress(tpState.AddressTypeUser, name, publicKey)
 }
 
 // GetPublicKey returns the public key of user or sea.
 func (cf *ClientFramework) GetPublicKey() string {
 	return cf.signer.GetPublicKey().AsHex()
-}
-
-// GenerateOperation return the user operation signed by user's private key.
-func (cf *ClientFramework) GenerateOperation(sea, path, name, hash string, size int64) *tpUser.Operation {
-	packages := time.Duration(math.Ceil(float64(size) / float64(PackageSize)))
-	timestamp := time.Now().Add(packages * time.Hour).Unix()
-	return tpUser.NewOperation(cf.GetAddress(), cf.signer.GetPublicKey().AsHex(), sea, path, name, hash, size, timestamp, *cf.signer)
 }
 
 // Whoami display the information of user or sea.
@@ -149,6 +141,10 @@ func (cf *ClientFramework) Whoami() {
 func (cf *ClientFramework) DecryptFileKey(key string) ([]byte, error) {
 	privateKey, _ := ioutil.ReadFile(PrivateKeyFile)
 	return tpCrypto.Decryption(string(privateKey), key)
+}
+
+func (cf *ClientFramework) EncryptFileKey(publicKey, key string) ([]byte, error) {
+	return tpCrypto.Encryption(publicKey, key)
 }
 
 // GetStatus returns the status of batch.

@@ -11,6 +11,7 @@ import (
 )
 
 type User struct {
+	Name      string
 	PublicKey string
 	Groups    []string
 	Root      *storage.Root
@@ -80,7 +81,6 @@ type Operation struct {
 	Address   string
 	PublicKey string
 	Sea       string
-	Path      string
 	Name      string
 	Size      int64
 	Hash      string
@@ -88,15 +88,14 @@ type Operation struct {
 	Signature string
 }
 
-func NewOperation(address, publicKey, sea, path, name, hash string, size, timestamp int64, signer signing.Signer) *Operation {
+func NewOperation(address, publicKey, sea, name, hash string, size, timestamp int64, signer signing.Signer) *Operation {
 	buf := make([]byte, 8)
 	binary.BigEndian.PutUint64(buf, uint64(size))
-	sign := signer.Sign(bytes.Join([][]byte{[]byte(address + publicKey + sea + path + name + hash), buf, []byte(strconv.Itoa(int(timestamp)))}, []byte{}))
+	sign := signer.Sign(bytes.Join([][]byte{[]byte(address + publicKey + sea + name + hash), buf, []byte(strconv.Itoa(int(timestamp)))}, []byte{}))
 	return &Operation{
 		Address:   address,
 		PublicKey: publicKey,
 		Sea:       sea,
-		Path:      path,
 		Name:      name,
 		Size:      size,
 		Hash:      hash,
