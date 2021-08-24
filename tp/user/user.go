@@ -7,7 +7,7 @@ import (
 )
 
 type User struct {
-	Username  string
+	Name      string
 	PublicKey string
 	Groups    []string
 	Root      *storage.Root
@@ -15,7 +15,7 @@ type User struct {
 
 func NewUser(username, publicKey string, groups []string, root *storage.Root) *User {
 	return &User{
-		Username:  username,
+		Name:      username,
 		PublicKey: publicKey,
 		Groups:    groups,
 		Root:      root,
