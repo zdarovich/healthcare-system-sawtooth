@@ -55,6 +55,10 @@ func NewUserClient(name, keyFile string) (*Client, error) {
 			if err != nil {
 				lib.Logger.Errorf("failed to sync: %v", err)
 			} else {
+				lib.Logger.Infof("user state: %+v", u)
+				for _, k := range u.Root.Keys.Keys {
+					lib.Logger.Infof("keys state: %+v", k)
+				}
 				cli.User = u
 			}
 		}
@@ -88,11 +92,6 @@ func (c *Client) UserRegister() error {
 		"address":    c.GetAddress(),
 	}).Info("user register success")
 	return c.Sync()
-}
-
-// GetSize returns the total size of files stored in P2P network.
-func (c *Client) GetSize() int64 {
-	return c.User.Root.Repo.Size
 }
 
 // CreatePatientData create new data of the source.
@@ -129,7 +128,14 @@ func (c *Client) CreatePatientData(name, data string) error {
 }
 
 func (c *Client) ListPatientData() ([]storage.INode, error) {
-	return c.User.Root.Repo.INodes, nil
+	var filtered []storage.INode
+	for _, n := range c.User.Root.Repo.INodes {
+		if n.GetAddr() != c.User.Name {
+			continue
+		}
+		filtered = append(filtered, n)
+	}
+	return filtered, nil
 }
 
 func (c *Client) GetPatientData(hash string) (string, error) {
@@ -146,7 +152,12 @@ func (c *Client) GetPatientData(hash string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	_, out, err := crypto.DecryptData([]byte(d.Payload), []byte(di.Key))
+	keyAes, err := c.DecryptFileKey(di.Key)
+	if err != nil {
+		fmt.Println("failed to decrypt file key:", err)
+		return "", err
+	}
+	_, out, err := crypto.DecryptData(tpCrypto.HexToBytes(d.Payload), keyAes)
 	if err != nil {
 		return "", err
 	}
@@ -159,7 +170,15 @@ func (c *Client) ListSharedPatientData(username string) ([]storage.INode, error)
 	if err != nil {
 		return nil, err
 	}
-	return user.Root.Repo.INodes, nil
+
+	var filtered []storage.INode
+	for _, n := range user.Root.Repo.INodes {
+		if n.GetAddr() != c.User.Name {
+			continue
+		}
+		filtered = append(filtered, n)
+	}
+	return filtered, nil
 }
 
 func (c *Client) GetSharedPatientData(hash, username string) (string, error) {
@@ -183,7 +202,10 @@ func (c *Client) GetSharedPatientData(hash, username string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	_, out, err := crypto.DecryptData([]byte(d.Payload), keyAES)
+	if d == nil {
+		return "", errors.New("data doesn't exist")
+	}
+	_, out, err := crypto.DecryptData(tpCrypto.HexToBytes(d.Payload), keyAES)
 	if err != nil {
 		return "", err
 	}
@@ -202,13 +224,17 @@ func (c *Client) ShareData(hash, username string) error {
 	addresses := []string{c.GetAddress()}
 
 	_, user, err := c.GetUser(username)
+	if err != nil {
+		fmt.Println("failed to get user:", err)
+		return err
+	}
 	keyAES, err := c.DecryptFileKey(di.Key)
 	if err != nil {
 		fmt.Println("failed to decrypt file key:", err)
 		return err
 	}
 
-	info, err := crypto.GenerateSharedDataInfo(di.Name, user.PublicKey, user.Name, di.Hash, tpCrypto.BytesToHex(keyAES), di.Size)
+	info, err := crypto.GenerateSharedDataInfo(di.Name, user.PublicKey, user.Name, tpCrypto.BytesToHex(keyAES), di.Hash, di.Size)
 	if err != nil {
 		return err
 	}
@@ -217,6 +243,7 @@ func (c *Client) ShareData(hash, username string) error {
 	if err != nil {
 		return err
 	}
+	lib.Logger.Infof("%s", info)
 	return c.SendTransactionAndWaiting([]tpPayload.SeaStoragePayload{{
 		Action:   tpPayload.UserCreateData,
 		Name:     c.Name,
@@ -225,11 +252,6 @@ func (c *Client) ShareData(hash, username string) error {
 }
 
 func (c *Client) GetUser(username string) (string, *tpUser.User, error) {
-	for a, u := range c.QueryCache {
-		if u.Name == username {
-			return a, u, nil
-		}
-	}
 	err := c.ListUsers()
 	if err != nil {
 		return "", nil, errors.New("failed to get user")

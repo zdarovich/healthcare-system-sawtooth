@@ -92,11 +92,6 @@ func (root *Root) GetData(hash, addr string) (data *DataInfo, err error) {
 	return NewDataInfo(f.Name, f.Size, f.Hash, key.Key, addr), nil
 }
 
-func (root *Root) List(p string) (iNodes []INodeInfo, err error) {
-
-	return root.Repo.List(p)
-}
-
 // ToBytes convert root to byte slice.
 func (root *Root) ToBytes() []byte {
 	var buf bytes.Buffer

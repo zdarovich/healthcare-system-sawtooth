@@ -6,15 +6,25 @@ brew install zmq
 export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:/usr/local/opt/openssl/lib/pkgconfig
 ```
 
-## Run sea from local
+## Generate admin identity
 ```
-go run cmd/client/main.go user -n redax -u localhost:8008 -V tcp://localhost:4004 -k resources/keys/redax.priv
+go run cmd/client/main.go generate
+```
+## Run admin identity and register it
+```
+go run cmd/client/main.go user -n admin -u localhost:8008 -V tcp://localhost:4004 -k resources/keys/admin.priv
 ```
 
-## Run go client from local
+## Generate user_a identity
 ```
-go run cmd/client/main.go -c "cmd/client/config.json"
+go run cmd/client/main.go generate
 ```
+## Run user_a identity and register it
+```
+go run cmd/client/main.go user -n user_a -u localhost:8008 -V tcp://localhost:4004 -k resources/keys/user_a.priv
+```
+
+
 ## Delete all images, containers, volumes
 ```
 docker ps | awk '{print $1}' | xargs docker stop

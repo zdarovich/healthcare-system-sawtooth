@@ -73,6 +73,9 @@ communicating with the transaction processor.`,
 				return
 			}
 			commands := strings.Fields(input)
+			if len(commands) == 0 {
+				continue
+			}
 			if commands[0] == "exit" {
 				return
 			} else if commands[0] == "register" {

@@ -143,7 +143,7 @@ func generateINodeInfos(iNodes []INode) []INodeInfo {
 func (r *Repo) CreateData(name, hash, keyIndex, addr string, size int64) error {
 
 	for j := 0; j < len(r.INodes); j++ {
-		if r.INodes[j].GetHash() == hash {
+		if r.INodes[j].GetHash() == hash && r.INodes[j].GetAddr() == addr {
 			return errors.New("data already exists")
 		}
 	}
@@ -168,11 +168,6 @@ func (d *Repo) checkDataExists(hash, addr string) (*Data, error) {
 		}
 	}
 	return nil, nil
-}
-
-// List information of INodes in the path.
-func (d *Repo) List(p string) ([]INodeInfo, error) {
-	return generateINodeInfos(d.INodes), nil
 }
 
 func RepoFromBytes(data []byte) (*Repo, error) {

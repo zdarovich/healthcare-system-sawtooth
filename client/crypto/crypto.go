@@ -90,6 +90,9 @@ func DecryptData(in, key []byte) (hash string, out []byte, err error) {
 	enc := in[lib.IvSize:]
 
 	block, err := aes.NewCipher(key)
+	if err != nil {
+		return "", nil, err
+	}
 	ctr := cipher.NewCTR(block, iv)
 
 	hashes := make([][]byte, 0)

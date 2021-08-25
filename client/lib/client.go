@@ -127,11 +127,8 @@ func (cf *ClientFramework) GetPublicKey() string {
 
 // Whoami display the information of user or sea.
 func (cf *ClientFramework) Whoami() {
-	if cf.Category {
-		fmt.Println("User name: " + cf.Name)
-	} else {
-		fmt.Println("Sea name: " + cf.Name)
-	}
+	fmt.Println("User name: " + cf.Name)
+
 	fmt.Println("Public key: " + cf.signer.GetPublicKey().AsHex())
 	fmt.Println("Sawtooth address: " + cf.GetAddress())
 }
@@ -214,7 +211,9 @@ func (cf *ClientFramework) SendTransactionAndWaiting(seaStoragePayloads []tpPayl
 	if err != nil {
 		return err
 	}
-	Logger.Debug(response)
+	for k, v := range response {
+		Logger.Debugf("%s: %s \n", k, v)
+	}
 	return cf.WaitingForCommitted()
 }
 
@@ -368,7 +367,7 @@ func (cf *ClientFramework) subscribeHandler() {
 						Logger.Errorf("failed to unmarshal protobuf: %v", err)
 						continue
 					}
-					Logger.Info(stateChangeList.StateChanges)
+
 					for _, stateChange := range stateChangeList.StateChanges {
 						if stateChange.Address == cf.GetAddress() {
 							cf.State <- stateChange.Value
