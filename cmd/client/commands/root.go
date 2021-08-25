@@ -8,7 +8,6 @@ import (
 	"os/user"
 	"path"
 
-	ma "github.com/multiformats/go-multiaddr"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -27,14 +26,11 @@ var (
 var rootCmd = &cobra.Command{
 	Use:   lib.FamilyName,
 	Short: "Decentralized cloud client application",
-	Long: `SeaStorage is a decentralized cloud client application.
-This application is a tool for store files on a P2P
-network based on Hyperledger Sawtooth.`,
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
+	Long: `Healthcare is a decentralized cloud client application.
+This application is a tool for store data on a network based on Hyperledger Sawtooth.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if version {
-			fmt.Println("SeaStorage (Decentralized File client system)")
+			fmt.Println("Healthcare (Decentralized data client system)")
 			fmt.Println("Version: " + lib.FamilyVersion)
 			return
 		}
@@ -54,17 +50,14 @@ func Execute() {
 func init() {
 	initConfig()
 	cobra.OnInitialize(initLogger)
-	cobra.OnInitialize(initBootstrapNodes)
 
-	rootCmd.PersistentFlags().BoolVarP(&version, "version", "v", false, "the version of SeaStorage")
+	rootCmd.PersistentFlags().BoolVarP(&version, "version", "v", false, "the version of Healthcare")
 	rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "", "config file(json)")
-	rootCmd.PersistentFlags().StringVarP(&name, "name", "n", GetDefaultUsername(), "the name of user/sea")
+	rootCmd.PersistentFlags().StringVarP(&name, "name", "n", GetDefaultUsername(), "the name of user")
 	rootCmd.PersistentFlags().StringVarP(&lib.TPURL, "url", "u", lib.DefaultTPURL, "the hyperledger sawtooth rest api url")
 	rootCmd.PersistentFlags().StringVarP(&lib.ValidatorURL, "validator", "V", lib.DefaultValidatorURL, "the hyperledger sawtooth validator tcp url")
 	rootCmd.PersistentFlags().StringVarP(&lib.PrivateKeyFile, "key", "k", lib.DefaultPrivateKeyFile, "the private key file for identity")
 	rootCmd.PersistentFlags().BoolVarP(&debug, "debug", "d", false, "debug version")
-	rootCmd.PersistentFlags().StringSliceVarP(&lib.ListenAddress, "listen", "l", lib.DefaultListenAddress, "the listen address and port for p2p network")
-	rootCmd.PersistentFlags().StringArrayVarP(&bootstrapAddrs, "bootstrap", "b", lib.DefaultBootstrapAddrs, "the bootstrap node addresses of the p2p network")
 
 }
 
@@ -112,40 +105,6 @@ func initConfig() {
 		if privateKeyFile == "" {
 			lib.DefaultPrivateKeyFile = privateKeyFile
 		}
-		listenAddresses := viper.GetStringSlice("listen")
-		if len(listenAddresses) > 0 {
-			lib.DefaultListenAddress = listenAddresses
-		}
-		addrs := viper.GetStringSlice("bootstrap")
-		if len(addrs) > 0 {
-			lib.DefaultBootstrapAddrs = addrs
-		}
-		seaCfg := viper.GetStringMap("sea")
-		if seaCfg != nil {
-			storagePath, ok := seaCfg["storagePath"].(string)
-			if ok {
-				lib.DefaultStoragePath = storagePath
-			}
-			storageSize, ok := seaCfg["storageSize"].(int64)
-			if ok {
-				lib.DefaultStorageSize = storageSize
-			}
-		}
-		userCfg := viper.GetStringMap("user")
-		if userCfg != nil {
-			largeFileSize, ok := userCfg["largeFileSize"].(int64)
-			if ok {
-				lib.DefaultLargeFileSize = largeFileSize
-			}
-			dataShards, ok := userCfg["dataShards"].(int)
-			if ok {
-				lib.DefaultDataShards = dataShards
-			}
-			parShards, ok := userCfg["parShards"].(int)
-			if ok {
-				lib.DefaultParShards = parShards
-			}
-		}
 	}
 }
 
@@ -156,9 +115,9 @@ func initLogger() {
 		ForceColors: true,
 	})
 	os.MkdirAll(lib.DefaultLogPath, 0755)
-	logFile, err := os.OpenFile(path.Join(lib.DefaultLogPath, "SeaStorage"), os.O_APPEND|os.O_WRONLY, 0644)
+	logFile, err := os.OpenFile(path.Join(lib.DefaultLogPath, "Healthcare"), os.O_APPEND|os.O_WRONLY, 0644)
 	if err != nil {
-		logFile, err = os.OpenFile(path.Join(lib.DefaultLogPath, "SeaStorage"), os.O_CREATE|os.O_WRONLY, 0644)
+		logFile, err = os.OpenFile(path.Join(lib.DefaultLogPath, "Healthcare"), os.O_CREATE|os.O_WRONLY, 0644)
 		if err != nil {
 			panic(err)
 		}
@@ -169,37 +128,12 @@ func initLogger() {
 
 }
 
-// init P2P bootstrap nodes
-func initBootstrapNodes() {
-	// Check bootstrap addresses
-	for _, addr := range bootstrapAddrs {
-		multiaddr, err := ma.NewMultiaddr(addr)
-		if err != nil {
-			lib.Logger.WithFields(logrus.Fields{
-				"peer": addr,
-			}).Warn("failed to init peer addr")
-		}
-		lib.BootstrapAddrs = append(lib.BootstrapAddrs, multiaddr)
-	}
-}
-
 // init config in JSON format
 func initConfigJSON() []byte {
 	cfg := make(map[string]interface{})
 	cfg["url"] = lib.DefaultTPURL
 	cfg["validator"] = lib.DefaultValidatorURL
 	cfg["key"] = GetDefaultKeyFile()
-	cfg["listen"] = lib.DefaultListenAddress
-	cfg["bootstrap"] = lib.DefaultBootstrapAddrs
-	cfg["sea"] = map[string]interface{}{
-		"storagePath": lib.DefaultStoragePath,
-		"storageSize": lib.DefaultStorageSize,
-	}
-	cfg["user"] = map[string]interface{}{
-		"largeFileSize": lib.DefaultLargeFileSize,
-		"dataShards":    lib.DefaultDataShards,
-		"parShards":     lib.DefaultParShards,
-	}
 	data, err := json.MarshalIndent(cfg, "", "\t")
 	if err != nil {
 		panic(err)

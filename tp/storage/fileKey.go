@@ -1,7 +1,6 @@
 package storage
 
 import (
-	"errors"
 	"healthcare-system-sawtooth/crypto"
 )
 
@@ -56,37 +55,4 @@ func (fkm *FileKeyMap) AddKey(key string, used bool) string {
 	}
 	fkm.Keys = append(fkm.Keys, fileKey)
 	return index
-}
-
-// UpdateKeyUsed update used count of keys by index and count.
-func (fkm *FileKeyMap) UpdateKeyUsed(keyUsed map[string]int) {
-	for index, used := range keyUsed {
-		var fileIndex int
-		var fileKey *FileKey
-		for i, key := range fkm.Keys {
-			if key.Index == index {
-				fileIndex = i
-				fileKey = key
-				break
-			}
-		}
-		if fileKey == nil {
-			continue
-		}
-		fileKey.Used += used
-		if fileKey.Used <= 0 {
-			fkm.Keys = append(fkm.Keys[:fileIndex], fkm.Keys[fileIndex+1:]...)
-		}
-	}
-}
-
-// PublishKey check key whether valid and publish it.
-func (fkm *FileKeyMap) PublishKey(publicKey, keyIndex, key string) error {
-	fileKey := fkm.GetKey(keyIndex)
-	if fileKey != nil {
-		fileKey.Key = key
-		fileKey.Published = true
-		return nil
-	}
-	return errors.New("invalid key or not exists")
 }

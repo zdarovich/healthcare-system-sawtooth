@@ -35,13 +35,13 @@ func (h *Handler) Namespaces() []string {
 func (h *Handler) Apply(request *processor_pb2.TpProcessRequest, context *processor.Context) error {
 	header := request.GetHeader()
 	user := header.GetSignerPublicKey()
-	pl, err := payload.SeaStoragePayloadFromBytes(request.GetPayload())
+	pl, err := payload.StoragePayloadFromBytes(request.GetPayload())
 	if err != nil {
 		return err
 	}
 	st := state.NewSeaStorageState(context)
 
-	logger.Debugf("SeaStorage txn %v: user %v: payload: Name='%v', Action='%v', Target='%v', DataInfo='%v'", request.Signature, user, pl.Name, pl.Action, pl.DataInfo)
+	logger.Debugf("Healthcare txn %v: user %v: payload: Name='%v', Action='%v', Target='%v', DataInfo='%v'", request.Signature, user, pl.Name, pl.Action, pl.DataInfo)
 
 	switch pl.Action {
 	// Base Action

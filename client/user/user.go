@@ -16,7 +16,7 @@ import (
 	tpUser "healthcare-system-sawtooth/tp/user"
 )
 
-// Client provides the platform for user storing files in P2P network.
+// Client provides the platform for user storing data.
 type Client struct {
 	User         *tpUser.User
 	PWD          string
@@ -119,7 +119,7 @@ func (c *Client) CreatePatientData(name, data string) error {
 		return err
 	}
 	addresses := []string{c.GetAddress()}
-	err = c.SendTransactionAndWaiting([]tpPayload.SeaStoragePayload{{
+	err = c.SendTransactionAndWaiting([]tpPayload.StoragePayload{{
 		Action:   tpPayload.UserCreateData,
 		Name:     c.Name,
 		DataInfo: info,
@@ -152,7 +152,7 @@ func (c *Client) GetPatientData(hash string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	keyAes, err := c.DecryptFileKey(di.Key)
+	keyAes, err := c.DecryptDataKey(di.Key)
 	if err != nil {
 		fmt.Println("failed to decrypt file key:", err)
 		return "", err
@@ -193,7 +193,7 @@ func (c *Client) GetSharedPatientData(hash, username string) (string, error) {
 	if di == nil {
 		return "", errors.New("data doesn't exist")
 	}
-	keyAES, err := c.DecryptFileKey(di.Key)
+	keyAES, err := c.DecryptDataKey(di.Key)
 	if err != nil {
 		return "", err
 	}
@@ -228,7 +228,7 @@ func (c *Client) ShareData(hash, username string) error {
 		fmt.Println("failed to get user:", err)
 		return err
 	}
-	keyAES, err := c.DecryptFileKey(di.Key)
+	keyAES, err := c.DecryptDataKey(di.Key)
 	if err != nil {
 		fmt.Println("failed to decrypt file key:", err)
 		return err
@@ -244,7 +244,7 @@ func (c *Client) ShareData(hash, username string) error {
 		return err
 	}
 	lib.Logger.Infof("%s", info)
-	return c.SendTransactionAndWaiting([]tpPayload.SeaStoragePayload{{
+	return c.SendTransactionAndWaiting([]tpPayload.StoragePayload{{
 		Action:   tpPayload.UserCreateData,
 		Name:     c.Name,
 		DataInfo: info,

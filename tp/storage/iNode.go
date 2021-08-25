@@ -131,15 +131,6 @@ func (d *Data) ToJson() string {
 	return string(data)
 }
 
-func generateINodeInfos(iNodes []INode) []INodeInfo {
-	var infos = make([]INodeInfo, len(iNodes))
-	for i := 0; i < len(iNodes); i++ {
-		infos[i].Hash = iNodes[i].GetHash()
-		infos[i].Size = iNodes[i].GetSize()
-	}
-	return infos
-}
-
 func (r *Repo) CreateData(name, hash, keyIndex, addr string, size int64) error {
 
 	for j := 0; j < len(r.INodes); j++ {
@@ -168,20 +159,4 @@ func (d *Repo) checkDataExists(hash, addr string) (*Data, error) {
 		}
 	}
 	return nil, nil
-}
-
-func RepoFromBytes(data []byte) (*Repo, error) {
-	d := &Repo{}
-	buf := bytes.NewBuffer(data)
-	dec := gob.NewDecoder(buf)
-	err := dec.Decode(d)
-	return d, err
-}
-
-func DataFromBytes(data []byte) (*Data, error) {
-	f := &Data{}
-	buf := bytes.NewBuffer(data)
-	dec := gob.NewDecoder(buf)
-	err := dec.Decode(f)
-	return f, err
 }

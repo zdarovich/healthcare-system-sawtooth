@@ -23,9 +23,9 @@ var generateCmd = &cobra.Command{
 			os.Exit(1)
 		}
 		pathPrompt := &promptui.Prompt{
-			Label:     "Key Path (default: $HOME/.SeaStorage/keys) ",
+			Label:     "Key Path (default: $HOME/.Healthcare/keys) ",
 			Templates: commandTemplates,
-			Default:   path.Join(u.HomeDir, ".SeaStorage", "keys"),
+			Default:   path.Join(u.HomeDir, ".Healthcare", "keys"),
 		}
 		keyFilePath, err := pathPrompt.Run()
 		if err != nil {
@@ -76,14 +76,4 @@ var generateCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(generateCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// generateCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// generateCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

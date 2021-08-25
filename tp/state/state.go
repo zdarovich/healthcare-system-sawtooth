@@ -13,25 +13,23 @@ type AddressType uint8
 var (
 	AddressTypeUser  AddressType = 0
 	AddressTypeGroup AddressType = 1
-	AddressTypeSea   AddressType = 2
 )
 
 var (
-	Namespace      = crypto.SHA512HexFromBytes([]byte("SeaStorage"))[:6]
+	Namespace      = crypto.SHA512HexFromBytes([]byte("Healthcare"))[:6]
 	UserNamespace  = crypto.SHA256HexFromBytes([]byte("User"))[:4]
 	GroupNamespace = crypto.SHA256HexFromBytes([]byte("Group"))[:4]
-	SeaNamespace   = crypto.SHA256HexFromBytes([]byte("Sea"))[:4]
 )
 
-type SeaStorageState struct {
+type StorageState struct {
 	context    *processor.Context
 	userCache  map[string][]byte
 	groupCache map[string][]byte
 	seaCache   map[string][]byte
 }
 
-func NewSeaStorageState(context *processor.Context) *SeaStorageState {
-	return &SeaStorageState{
+func NewSeaStorageState(context *processor.Context) *StorageState {
+	return &StorageState{
 		context:    context,
 		userCache:  make(map[string][]byte),
 		groupCache: make(map[string][]byte),
@@ -39,7 +37,7 @@ func NewSeaStorageState(context *processor.Context) *SeaStorageState {
 	}
 }
 
-func (sss *SeaStorageState) GetUser(address string) (*user.User, error) {
+func (sss *StorageState) GetUser(address string) (*user.User, error) {
 	userBytes, ok := sss.userCache[address]
 	if ok {
 		return user.UserFromBytes(userBytes)
@@ -55,7 +53,7 @@ func (sss *SeaStorageState) GetUser(address string) (*user.User, error) {
 	return nil, &processor.InvalidTransactionError{Msg: "user doesn't exists"}
 }
 
-func (sss *SeaStorageState) CreateUser(username string, publicKey string) error {
+func (sss *StorageState) CreateUser(username string, publicKey string) error {
 	address := MakeAddress(AddressTypeUser, username, publicKey)
 	_, ok := sss.userCache[address]
 	if ok {
@@ -71,7 +69,7 @@ func (sss *SeaStorageState) CreateUser(username string, publicKey string) error 
 	return sss.saveUser(user.GenerateUser(username, publicKey), address)
 }
 
-func (sss *SeaStorageState) saveUser(u *user.User, address string) error {
+func (sss *StorageState) saveUser(u *user.User, address string) error {
 	uBytes := u.ToBytes()
 	addresses, err := sss.context.SetState(map[string][]byte{
 		address: uBytes,
@@ -86,7 +84,7 @@ func (sss *SeaStorageState) saveUser(u *user.User, address string) error {
 	return nil
 }
 
-func (sss *SeaStorageState) GetGroup(address string) (*user.Group, error) {
+func (sss *StorageState) GetGroup(address string) (*user.Group, error) {
 	groupBytes, ok := sss.groupCache[address]
 	if ok {
 		return user.GroupFromBytes(groupBytes)
@@ -102,7 +100,7 @@ func (sss *SeaStorageState) GetGroup(address string) (*user.Group, error) {
 	return nil, &processor.InvalidTransactionError{Msg: "group doesn't exists"}
 }
 
-func (sss *SeaStorageState) CreateGroup(groupName, leader, key string) error {
+func (sss *StorageState) CreateGroup(groupName, leader, key string) error {
 	address := MakeAddress(AddressTypeGroup, groupName, "")
 	_, ok := sss.groupCache[address]
 	if ok {
@@ -118,7 +116,7 @@ func (sss *SeaStorageState) CreateGroup(groupName, leader, key string) error {
 	return sss.saveGroup(user.GenerateGroup(groupName, leader), address)
 }
 
-func (sss *SeaStorageState) saveGroup(g *user.Group, address string) error {
+func (sss *StorageState) saveGroup(g *user.Group, address string) error {
 	gBytes := g.ToBytes()
 	addresses, err := sss.context.SetState(map[string][]byte{
 		address: gBytes,
@@ -133,7 +131,7 @@ func (sss *SeaStorageState) saveGroup(g *user.Group, address string) error {
 	return nil
 }
 
-func (sss *SeaStorageState) CreateUserData(username, publicKey string, info storage.DataInfo) error {
+func (sss *StorageState) CreateUserData(username, publicKey string, info storage.DataInfo) error {
 	address := MakeAddress(AddressTypeUser, username, publicKey)
 	u, err := sss.GetUser(address)
 	if err != nil {

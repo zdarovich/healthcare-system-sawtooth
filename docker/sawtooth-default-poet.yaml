@@ -1,18 +1,3 @@
-# Copyright 2018 Intel Corporation
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# ------------------------------------------------------------------------------
-
 version: "2.1"
 
 volumes:
@@ -264,36 +249,20 @@ services:
       "
     stop_signal: SIGKILL
 
-  seastorage-tp-0:
-    image: yellowsea/seastorage-tp:1.0.1
-    container_name: seastorage-tp-0
+  healthcare-system-tp-0:
+    image: hyperledger/healthcare-system-tp
+    container_name: healthcare-system-tp-0
     expose:
       - 4004
-    command: /root/go/bin/SeaStorage-TP -vv -C tcp://validator-0:4004
+    command: /app/main -vv -C tcp://validator-0:4004
     stop_signal: SIGKILL
 
-  seastorage-tp-1:
-    image: yellowsea/seastorage-tp:1.0.1
-    container_name: seastorage-tp-1
+  healthcare-system-tp-1:
+    image: hyperledger/healthcare-system-tp
+    container_name: healthcare-system-tp-1
     expose:
       - 4004
-    command: /root/go/bin/SeaStorage-TP -vv -C tcp://validator-1:4004
-    stop_signal: SIGKILL
-
-  seastorage-tp-2:
-    image: yellowsea/seastorage-tp:1.0.1
-    container_name: seastorage-tp-2
-    expose:
-      - 4004
-    command: /root/go/bin/SeaStorage-TP -vv -C tcp://validator-2:4004
-    stop_signal: SIGKILL
-
-  seastorage-tp-3:
-    image: yellowsea/seastorage-tp:1.0.1
-    container_name: seastorage-tp-3
-    expose:
-      - 4004
-    command: /root/go/bin/SeaStorage-TP -vv -C tcp://validator-3:4004
+    command: /app/main -vv -C tcp://validator-1:4004
     stop_signal: SIGKILL
 
   intkey-tp-0:
@@ -312,30 +281,6 @@ services:
     command: intkey-tp-python -C tcp://validator-1:4004
     stop_signal: SIGKILL
 
-  intkey-tp-2:
-    image: hyperledger/sawtooth-intkey-tp-python:1.1
-    container_name: sawtooth-intkey-tp-python-default-2
-    expose:
-      - 4004
-    command: intkey-tp-python -C tcp://validator-2:4004
-    stop_signal: SIGKILL
-
-  intkey-tp-3:
-    image: hyperledger/sawtooth-intkey-tp-python:1.1
-    container_name: sawtooth-intkey-tp-python-default-3
-    expose:
-      - 4004
-    command: intkey-tp-python -C tcp://validator-3:4004
-    stop_signal: SIGKILL
-
-  intkey-tp-4:
-    image: hyperledger/sawtooth-intkey-tp-python:1.1
-    container_name: sawtooth-intkey-tp-python-default-4
-    expose:
-      - 4004
-    command: intkey-tp-python -C tcp://validator-4:4004
-    stop_signal: SIGKILL
-
   xo-tp-0:
     image: hyperledger/sawtooth-xo-tp-python:1.1
     container_name: sawtooth-xo-tp-python-default-0
@@ -352,30 +297,6 @@ services:
     command: xo-tp-python -vv -C tcp://validator-1:4004
     stop_signal: SIGKILL
 
-  xo-tp-2:
-    image: hyperledger/sawtooth-xo-tp-python:1.1
-    container_name: sawtooth-xo-tp-python-default-2
-    expose:
-      - 4004
-    command: xo-tp-python -vv -C tcp://validator-2:4004
-    stop_signal: SIGKILL
-
-  xo-tp-3:
-    image: hyperledger/sawtooth-xo-tp-python:1.1
-    container_name: sawtooth-xo-tp-python-default-3
-    expose:
-      - 4004
-    command: xo-tp-python -vv -C tcp://validator-3:4004
-    stop_signal: SIGKILL
-
-  xo-tp-4:
-    image: hyperledger/sawtooth-xo-tp-python:1.1
-    container_name: sawtooth-xo-tp-python-default-4
-    expose:
-      - 4004
-    command: xo-tp-python -vv -C tcp://validator-4:4004
-    stop_signal: SIGKILL
-
   settings-tp-0:
     image: hyperledger/sawtooth-settings-tp:1.1
     container_name: sawtooth-settings-tp-default-0
@@ -390,30 +311,6 @@ services:
     expose:
       - 4004
     command: settings-tp -C tcp://validator-1:4004
-    stop_signal: SIGKILL
-
-  settings-tp-2:
-    image: hyperledger/sawtooth-settings-tp:1.1
-    container_name: sawtooth-settings-tp-default-2
-    expose:
-      - 4004
-    command: settings-tp -C tcp://validator-2:4004
-    stop_signal: SIGKILL
-
-  settings-tp-3:
-    image: hyperledger/sawtooth-settings-tp:1.1
-    container_name: sawtooth-settings-tp-default-3
-    expose:
-      - 4004
-    command: settings-tp -C tcp://validator-3:4004
-    stop_signal: SIGKILL
-
-  settings-tp-4:
-    image: hyperledger/sawtooth-settings-tp:1.1
-    container_name: sawtooth-settings-tp-default-4
-    expose:
-      - 4004
-    command: settings-tp -C tcp://validator-4:4004
     stop_signal: SIGKILL
 
   poet-engine-0:
@@ -448,39 +345,6 @@ services:
         poet-engine -C tcp://validator-1:5050 --component tcp://validator-1:4004 \
     \""
 
-  poet-engine-2:
-    image: hyperledger/sawtooth-poet-engine:1.1
-    container_name: sawtooth-poet-engine-2
-    volumes:
-      - poet-shared:/poet-shared
-    command: "bash -c \"\
-        while [ ! -f /poet-shared/validator-2/keys/validator.priv ]; do sleep 1; done && \
-        cp -a /poet-shared/validator-2/keys /etc/sawtooth && \
-        poet-engine -C tcp://validator-2:5050 --component tcp://validator-2:4004 \
-    \""
-
-  poet-engine-3:
-    image: hyperledger/sawtooth-poet-engine:1.1
-    container_name: sawtooth-poet-engine-3
-    volumes:
-      - poet-shared:/poet-shared
-    command: "bash -c \"\
-        while [ ! -f /poet-shared/validator-3/keys/validator.priv ]; do sleep 1; done && \
-        cp -a /poet-shared/validator-3/keys /etc/sawtooth && \
-        poet-engine -C tcp://validator-3:5050 --component tcp://validator-3:4004 \
-    \""
-
-  poet-engine-4:
-    image: hyperledger/sawtooth-poet-engine:1.1
-    container_name: sawtooth-poet-engine-4
-    volumes:
-      - poet-shared:/poet-shared
-    command: "bash -c \"\
-        while [ ! -f /poet-shared/validator-4/keys/validator.priv ]; do sleep 1; done && \
-        cp -a /poet-shared/validator-4/keys /etc/sawtooth && \
-        poet-engine -C tcp://validator-4:5050 --component tcp://validator-4:4004 \
-    \""
-
   poet-validator-registry-tp-0:
     image: hyperledger/sawtooth-poet-validator-registry-tp:1.1
     container_name: sawtooth-poet-validator-registry-tp-0
@@ -497,36 +361,6 @@ services:
     expose:
       - 4004
     command: poet-validator-registry-tp -C tcp://validator-1:4004
-    environment:
-      PYTHONPATH: /project/sawtooth-core/consensus/poet/common
-    stop_signal: SIGKILL
-
-  poet-validator-registry-tp-2:
-    image: hyperledger/sawtooth-poet-validator-registry-tp:1.1
-    container_name: sawtooth-poet-validator-registry-tp-2
-    expose:
-      - 4004
-    command: poet-validator-registry-tp -C tcp://validator-2:4004
-    environment:
-      PYTHONPATH: /project/sawtooth-core/consensus/poet/common
-    stop_signal: SIGKILL
-
-  poet-validator-registry-tp-3:
-    image: hyperledger/sawtooth-poet-validator-registry-tp:1.1
-    container_name: sawtooth-poet-validator-registry-tp-3
-    expose:
-      - 4004
-    command: poet-validator-registry-tp -C tcp://validator-3:4004
-    environment:
-      PYTHONPATH: /project/sawtooth-core/consensus/poet/common
-    stop_signal: SIGKILL
-
-  poet-validator-registry-tp-4:
-    image: hyperledger/sawtooth-poet-validator-registry-tp:1.1
-    container_name: sawtooth-poet-validator-registry-tp-4
-    expose:
-      - 4004
-    command: poet-validator-registry-tp -C tcp://validator-4:4004
     environment:
       PYTHONPATH: /project/sawtooth-core/consensus/poet/common
     stop_signal: SIGKILL

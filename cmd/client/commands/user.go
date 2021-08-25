@@ -35,8 +35,8 @@ var (
 // userCmd represents the user command
 var userCmd = &cobra.Command{
 	Use:   "user",
-	Short: "SeaStorage User Command Client",
-	Long: `SeaStorage User Command Client is a platform support
+	Short: "Healthcare User Command Client",
+	Long: `Healthcare User Command Client is a platform support
 communicating with the transaction processor.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if name == "" {

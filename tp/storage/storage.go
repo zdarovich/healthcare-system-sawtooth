@@ -1,17 +1,3 @@
-// Copyright © 2019 yellowsea <hh1271941291@gmail.com>
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 package storage
 
 import (
@@ -24,9 +10,7 @@ func init() {
 	gob.Register(&Repo{})
 }
 
-// Root store information of files and Keys used to encryption.
-// Store the information of private files in 'Home' directory.
-// Store the information of shared files in 'Shared' directory.
+// Root store information of Data and Keys used to encryption.
 type Root struct {
 	Repo *Repo
 	Keys *FileKeyMap
@@ -73,11 +57,6 @@ func (root *Root) CreateData(info DataInfo) error {
 		return err
 	}
 	return nil
-}
-
-// PublishKey publish the key encrypted by public key.
-func (root *Root) PublishKey(publicKey, keyIndex, key string) error {
-	return root.Keys.PublishKey(publicKey, keyIndex, key)
 }
 
 func (root *Root) GetData(hash, addr string) (data *DataInfo, err error) {

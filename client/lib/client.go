@@ -30,12 +30,11 @@ import (
 // The Category of ClientFramework.
 const (
 	ClientCategoryUser = true
-	ClientCategorySea  = false
 )
 
 // ClientFramework provides SeaStorage base operations for both user and sea.
 type ClientFramework struct {
-	Name     string // The name of user or sea.
+	Name     string // The name of user.
 	Category bool   // The category of client framework.
 	signer   *signing.Signer
 	zmqConn  *messaging.ZmqConnection
@@ -93,25 +92,21 @@ func (cf *ClientFramework) Close() {
 	cf.zmqConn.Close()
 }
 
-// Register user or sea. Create user or sea in the blockchain.
+// Register user. Create user in the blockchain.
 func (cf *ClientFramework) Register(name string) error {
-	var seaStoragePayload tpPayload.SeaStoragePayload
-	if cf.Category {
-		seaStoragePayload.Action = tpPayload.CreateUser
-	} else {
-		seaStoragePayload.Action = tpPayload.CreateSea
-	}
+	var seaStoragePayload tpPayload.StoragePayload
+	seaStoragePayload.Action = tpPayload.CreateUser
 	seaStoragePayload.Target = []string{name}
 	cf.Name = name
-	return cf.SendTransactionAndWaiting([]tpPayload.SeaStoragePayload{seaStoragePayload}, []string{cf.GetAddress()}, []string{cf.GetAddress()})
+	return cf.SendTransactionAndWaiting([]tpPayload.StoragePayload{seaStoragePayload}, []string{cf.GetAddress()}, []string{cf.GetAddress()})
 }
 
-// GetData returns the data of user or sea.
+// GetData returns the data of user.
 func (cf *ClientFramework) GetData() ([]byte, error) {
 	return GetStateData(cf.GetAddress())
 }
 
-// GetAddress returns the address of user or sea.
+// GetAddress returns the address of user.
 func (cf *ClientFramework) GetAddress() string {
 	return tpState.MakeAddress(tpState.AddressTypeUser, cf.Name, cf.signer.GetPublicKey().AsHex())
 }
@@ -120,27 +115,26 @@ func (cf *ClientFramework) GetUserAddress(name, publicKey string) string {
 	return tpState.MakeAddress(tpState.AddressTypeUser, name, publicKey)
 }
 
-// GetPublicKey returns the public key of user or sea.
+// GetPublicKey returns the public key of user.
 func (cf *ClientFramework) GetPublicKey() string {
 	return cf.signer.GetPublicKey().AsHex()
 }
 
-// Whoami display the information of user or sea.
+// Whoami display the information of user.
 func (cf *ClientFramework) Whoami() {
 	fmt.Println("User name: " + cf.Name)
-
 	fmt.Println("Public key: " + cf.signer.GetPublicKey().AsHex())
 	fmt.Println("Sawtooth address: " + cf.GetAddress())
 }
 
-// DecryptFileKey returns the key decrypted by user's private key.
+// DecryptDataKey returns the key decrypted by user's private key.
 // If the error is not nil, it will return.
-func (cf *ClientFramework) DecryptFileKey(key string) ([]byte, error) {
+func (cf *ClientFramework) DecryptDataKey(key string) ([]byte, error) {
 	privateKey, _ := ioutil.ReadFile(PrivateKeyFile)
 	return tpCrypto.Decryption(string(privateKey), key)
 }
 
-func (cf *ClientFramework) EncryptFileKey(publicKey, key string) ([]byte, error) {
+func (cf *ClientFramework) EncryptDataKey(publicKey, key string) ([]byte, error) {
 	return tpCrypto.Encryption(publicKey, key)
 }
 
@@ -158,10 +152,10 @@ func (cf *ClientFramework) getStatus(batchID string, wait int64) (map[string]int
 }
 
 // SendTransaction send transactions by the batch.
-func (cf *ClientFramework) SendTransaction(seaStoragePayloads []tpPayload.SeaStoragePayload, inputs, outputs []string) (map[string]interface{}, error) {
+func (cf *ClientFramework) SendTransaction(storagePayloads []tpPayload.StoragePayload, inputs, outputs []string) (map[string]interface{}, error) {
 	var transactions []*transaction_pb2.Transaction
 
-	for _, seaStoragePayload := range seaStoragePayloads {
+	for _, storagePayload := range storagePayloads {
 		// Construct TransactionHeader
 		rawTransactionHeader := transaction_pb2.TransactionHeader{
 			SignerPublicKey:  cf.signer.GetPublicKey().AsHex(),
@@ -172,7 +166,7 @@ func (cf *ClientFramework) SendTransaction(seaStoragePayloads []tpPayload.SeaSto
 			BatcherPublicKey: cf.signer.GetPublicKey().AsHex(),
 			Inputs:           inputs,
 			Outputs:          outputs,
-			PayloadSha512:    tpCrypto.SHA512HexFromBytes(seaStoragePayload.ToBytes()),
+			PayloadSha512:    tpCrypto.SHA512HexFromBytes(storagePayload.ToBytes()),
 		}
 		transactionHeader, err := proto.Marshal(&rawTransactionHeader)
 		if err != nil {
@@ -186,7 +180,7 @@ func (cf *ClientFramework) SendTransaction(seaStoragePayloads []tpPayload.SeaSto
 		transaction := &transaction_pb2.Transaction{
 			Header:          transactionHeader,
 			HeaderSignature: transactionHeaderSignature,
-			Payload:         seaStoragePayload.ToBytes(),
+			Payload:         storagePayload.ToBytes(),
 		}
 
 		transactions = append(transactions, transaction)
@@ -206,7 +200,7 @@ func (cf *ClientFramework) SendTransaction(seaStoragePayloads []tpPayload.SeaSto
 }
 
 // SendTransactionAndWaiting send transaction by the batch and waiting for the batches committed.
-func (cf *ClientFramework) SendTransactionAndWaiting(seaStoragePayloads []tpPayload.SeaStoragePayload, inputs, outputs []string) error {
+func (cf *ClientFramework) SendTransactionAndWaiting(seaStoragePayloads []tpPayload.StoragePayload, inputs, outputs []string) error {
 	response, err := cf.SendTransaction(seaStoragePayloads, inputs, outputs)
 	if err != nil {
 		return err
