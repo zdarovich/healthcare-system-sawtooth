@@ -1,10 +1,10 @@
 # Healthcare system on Hyperledger Sawtooth
-## Intro
+## Introduction
 Healthcare system decentralized data storage.
 Encrypted keys are stored on the Hyperledger Sawtooth blockchain.
 Encrypted data is stored on the off-chain using MongoDB.
 Blockhain is accessed using transaction proccessor, which stores user data, user shared data, encrypted keys.
-Storage is managed by the client, which fetches data from MongoDB and decrypts cipher using data from the blockchain.sawtooth
+Storage is managed by the client, which fetches data from MongoDB and decrypts cipher using data from the Hyperledger Sawtooth blockchain.
 All components are deloyed in the Docker containers
 
 ## Prerequisites
@@ -17,11 +17,11 @@ All components are deloyed in the Docker containers
 - `/docker`: docker infrastructure files
 - `/resources`: pre-built private and public keys for quick testing
 - `/test`: benchmark tests
-- `/tp`: transaction proccessor, which stores users and the data
+- `/tp`: smart contract, which stores users and the data
 - `go.mod`: list of Golang libraries used in the project
 - `go.sum`: hash sums of Golang libraries
 
-### Commands description
+### Client commands description
 - `register`: Register current identity as user on the blockchain.
 - `sync`: Sync data from the blockchain.
 - `whoami`: Get current user info.
@@ -35,8 +35,8 @@ All components are deloyed in the Docker containers
 - `exit`: Exit command prompt.
 
 
-## Run and test system
-### Start healthcare-system
+## Run and test healthcare system
+### Start system
 ```
 docker-compose -f docker/sawtooth-default.yaml up -d
 ```
@@ -134,12 +134,13 @@ docker ps | grep 'docker_' | awk '{print $1}' | xargs docker stop
 docker container rm $(docker ps --filter "status=exited" | grep 'hyperledger' | awk '{print $1}')
 docker container rm $(docker ps --filter "status=exited" | grep 'docker_' | awk '{print $1}')
 docker volume rm docker_poet-shared
-docker rmi $(docker images | grep 'hyperledger' | awk '{print $3}')
+docker rmi $(docker images | grep 'hyperledger' | awk '{print $3}') --force
+docker rmi $(docker images | grep 'docker_' | awk '{print $3}') --force
 ```
 
 ### View docker logs
 ```
-docker logs --follow CONTAINER_ID
+docker logs --follow <CONTAINER_ID>
 ```
 
 ### Install before build on MacOS
