@@ -86,7 +86,7 @@ docker run -t -i --rm --network docker_default docker_healthcare-system-client /
 ```
 create data1 <data>
 ```
-8. List data owned by current user
+8. List data owned by current user and get it by hash
 ```
 ls
 get fsdfsfsdfsd
