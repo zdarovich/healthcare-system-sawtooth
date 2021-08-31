@@ -34,14 +34,15 @@ const (
 
 // ClientFramework provides SeaStorage base operations for both user and sea.
 type ClientFramework struct {
-	Name     string // The name of user.
-	Category bool   // The category of client framework.
-	signer   *signing.Signer
-	zmqConn  *messaging.ZmqConnection
-	corrID   string
-	waiting  bool
-	signal   chan bool
-	State    chan []byte
+	Name       string // The name of user.
+	Category   bool   // The category of client framework.
+	PrivKeyHex []byte
+	signer     *signing.Signer
+	zmqConn    *messaging.ZmqConnection
+	corrID     string
+	waiting    bool
+	signal     chan bool
+	State      chan []byte
 }
 
 // NewClientFramework is the construct for ClientFramework.
@@ -62,11 +63,12 @@ func NewClientFramework(name string, category bool, keyFile string) (*ClientFram
 	cryptoFactory := signing.NewCryptoFactory(signing.NewSecp256k1Context())
 	signer := cryptoFactory.NewSigner(privateKey)
 	cf := &ClientFramework{
-		Name:     name,
-		Category: category,
-		signer:   signer,
-		signal:   make(chan bool),
-		State:    make(chan []byte),
+		Name:       name,
+		Category:   category,
+		signer:     signer,
+		PrivKeyHex: privateKeyHex,
+		signal:     make(chan bool),
+		State:      make(chan []byte),
 	}
 	err = cf.generateZmqConnection()
 	if err != nil {
@@ -106,6 +108,10 @@ func (cf *ClientFramework) GetData() ([]byte, error) {
 	return GetStateData(cf.GetAddress())
 }
 
+func (cf *ClientFramework) GetDataByAddress(addr string) ([]byte, error) {
+	return GetStateData(addr)
+}
+
 // GetAddress returns the address of user.
 func (cf *ClientFramework) GetAddress() string {
 	return tpState.MakeAddress(tpState.AddressTypeUser, cf.Name, cf.signer.GetPublicKey().AsHex())
@@ -130,8 +136,7 @@ func (cf *ClientFramework) Whoami() {
 // DecryptDataKey returns the key decrypted by user's private key.
 // If the error is not nil, it will return.
 func (cf *ClientFramework) DecryptDataKey(key string) ([]byte, error) {
-	privateKey, _ := ioutil.ReadFile(PrivateKeyFile)
-	return tpCrypto.Decryption(string(privateKey), key)
+	return tpCrypto.Decryption(string(cf.PrivKeyHex), key)
 }
 
 func (cf *ClientFramework) EncryptDataKey(publicKey, key string) ([]byte, error) {

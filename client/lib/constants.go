@@ -2,8 +2,6 @@ package lib
 
 import (
 	"crypto/aes"
-	"os/user"
-	"path"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -65,7 +63,7 @@ var (
 	// PrivateKeyFile is the path of private key.
 	PrivateKeyFile string
 	// DefaultKeyPath is the default path for key storing.
-	DefaultKeyPath string
+	DefaultKeyPath = "resources/keys"
 	// DefaultPrivateKeyFile is the default path of private key.
 	DefaultPrivateKeyFile string
 	// DefaultConfigPath is the default path for config storing.
@@ -73,15 +71,3 @@ var (
 	// DefaultLogPath is the default path for log storing.
 	DefaultLogPath string
 )
-
-func init() {
-	u, err := user.Current()
-	if err != nil {
-		panic(err)
-	}
-	homeDir := u.HomeDir
-	DefaultConfigPath = path.Join(homeDir, ".Healthcare")
-	DefaultKeyPath = path.Join(DefaultConfigPath, "keys")
-	DefaultPrivateKeyFile = path.Join(DefaultKeyPath, "Healthcare.priv")
-	DefaultLogPath = path.Join(DefaultConfigPath, "log")
-}

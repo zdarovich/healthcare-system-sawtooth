@@ -30,6 +30,7 @@ const (
 )
 
 func (d *Data) Save() (*primitive.ObjectID, error) {
+
 	ctx, cancel := GetMongoContext()
 	defer cancel()
 	col, err := getMongoDataCollection(ctx)

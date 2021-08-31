@@ -12,13 +12,13 @@ import (
 )
 
 // GenerateDataInfo generate the information of data for storage system.
-func GenerateDataInfo(name, target, publicKey, username, keyAes string) (info tpStorage.DataInfo, err error) {
+func GenerateDataInfo(name, target, publicKey, username, keyAes, hash string) (info tpStorage.DataInfo, err error) {
 
 	keyEncrypt, err := crypto.Encryption(publicKey, keyAes)
 	if err != nil {
 		return
 	}
-	hash, out, err := EncryptData([]byte(target), crypto.HexToBytes(keyAes))
+	_, out, err := EncryptData([]byte(target), crypto.HexToBytes(keyAes))
 	if err != nil {
 		return
 	}

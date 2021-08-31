@@ -1,0 +1,6 @@
+{
+  "name": "redax",
+  "url": "localhost:8008",
+  "validator": "localhost:4004",
+  "key": "resources/keys/redax.priv"
+}

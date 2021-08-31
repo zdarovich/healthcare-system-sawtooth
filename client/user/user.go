@@ -19,7 +19,6 @@ import (
 // Client provides the platform for user storing data.
 type Client struct {
 	User         *tpUser.User
-	PWD          string
 	lastQueryEnd string
 	QueryCache   map[string]*tpUser.User
 	*lib.ClientFramework
@@ -95,28 +94,28 @@ func (c *Client) UserRegister() error {
 }
 
 // CreatePatientData create new data of the source.
-// After sending transaction, upload data into MongoDB.
-func (c *Client) CreatePatientData(name, data string) error {
+// upload data into MongoDB, then send transaction.
+func (c *Client) CreatePatientData(name, data string) (*storage.DataInfo, error) {
 	hash, err := crypto.CalDataHash(data)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	// Check Destination Path exists
 	di, err := c.User.Root.GetData(hash, c.User.Name)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if di != nil {
-		return errors.New("data exist already")
+		return nil, errors.New("data exist already")
 	}
 	keyAES := tpCrypto.GenerateRandomAESKey(lib.AESKeySize)
-	info, err := crypto.GenerateDataInfo(name, data, c.GetPublicKey(), c.User.Name, tpCrypto.BytesToHex(keyAES))
+	info, err := crypto.GenerateDataInfo(name, data, c.GetPublicKey(), c.User.Name, tpCrypto.BytesToHex(keyAES), hash)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	err = c.User.Root.CreateData(info)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	addresses := []string{c.GetAddress()}
 	err = c.SendTransactionAndWaiting([]tpPayload.StoragePayload{{
@@ -124,7 +123,7 @@ func (c *Client) CreatePatientData(name, data string) error {
 		Name:     c.Name,
 		DataInfo: info,
 	}}, addresses, addresses)
-	return nil
+	return &info, nil
 }
 
 func (c *Client) ListPatientData() ([]storage.INode, error) {
@@ -252,6 +251,11 @@ func (c *Client) ShareData(hash, username string) error {
 }
 
 func (c *Client) GetUser(username string) (string, *tpUser.User, error) {
+	for a, u := range c.QueryCache {
+		if u.Name == username {
+			return a, u, nil
+		}
+	}
 	err := c.ListUsers()
 	if err != nil {
 		return "", nil, errors.New("failed to get user")
@@ -266,13 +270,16 @@ func (c *Client) GetUser(username string) (string, *tpUser.User, error) {
 
 // ListUsers get the query cache for list shared files.
 func (c *Client) ListUsers() error {
-	users, err := lib.ListUsers(c.lastQueryEnd, lib.DefaultQueryLimit+1)
-	if err != nil {
-		return err
-	}
 	for k := range c.QueryCache {
 		delete(c.QueryCache, k)
 	}
+
+	limit := 10000
+	users, err := lib.ListUsers(c.lastQueryEnd, uint(limit))
+	if err != nil {
+		return err
+	}
+
 	for i := 1; i < len(users); i++ {
 		m := users[i].(map[string]interface{})
 		userBytes, err := base64.StdEncoding.DecodeString(m["data"].(string))
@@ -285,6 +292,7 @@ func (c *Client) ListUsers() error {
 		}
 		c.QueryCache[m["address"].(string)] = u
 	}
+
 	return nil
 }
 

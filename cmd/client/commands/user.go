@@ -40,7 +40,7 @@ var userCmd = &cobra.Command{
 communicating with the transaction processor.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if name == "" {
-			fmt.Println(errors.New("the name of user/sea is required"))
+			fmt.Println(errors.New("the name of user is required"))
 			os.Exit(0)
 		}
 		cli, err := user.NewUserClient(name, lib.PrivateKeyFile)
@@ -48,10 +48,19 @@ communicating with the transaction processor.`,
 			fmt.Println(err)
 			os.Exit(1)
 		}
+		if cli.User != nil {
+			fmt.Println("Already register.")
+		} else {
+			err = cli.UserRegister()
+			if err != nil {
+				fmt.Println(err)
+			}
+		}
+
 		defer cli.Close()
 		for {
 			prompt := promptui.Prompt{
-				Label:     cli.PWD + " ",
+				Label:     name + " ",
 				Templates: commandTemplates,
 				Validate: func(s string) error {
 					commands := strings.Fields(s)
@@ -123,7 +132,7 @@ communicating with the transaction processor.`,
 				} else if len(commands) > 3 {
 					fmt.Println(errInvalidPath)
 				} else {
-					err = cli.CreatePatientData(commands[1], commands[2])
+					_, err = cli.CreatePatientData(commands[1], commands[2])
 					if err != nil {
 						fmt.Println(err)
 					}

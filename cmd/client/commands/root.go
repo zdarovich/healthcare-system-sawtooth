@@ -15,11 +15,8 @@ import (
 )
 
 var (
-	version        bool
-	cfgFile        string
-	name           string
-	debug          bool
-	bootstrapAddrs []string
+	CfgFile string
+	name    string
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -29,11 +26,8 @@ var rootCmd = &cobra.Command{
 	Long: `Healthcare is a decentralized cloud client application.
 This application is a tool for store data on a network based on Hyperledger Sawtooth.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		if version {
-			fmt.Println("Healthcare (Decentralized data client system)")
-			fmt.Println("Version: " + lib.FamilyVersion)
-			return
-		}
+		fmt.Println("Healthcare (Decentralized data client system)")
+		fmt.Println("Version: " + lib.FamilyVersion)
 		cmd.Help()
 	},
 }
@@ -48,26 +42,23 @@ func Execute() {
 }
 
 func init() {
-	initConfig()
-	cobra.OnInitialize(initLogger)
+	//InitConfig()
+	cobra.OnInitialize(InitLogger)
 
-	rootCmd.PersistentFlags().BoolVarP(&version, "version", "v", false, "the version of Healthcare")
-	rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "", "config file(json)")
+	rootCmd.PersistentFlags().StringVarP(&CfgFile, "config", "c", "", "config file(json)")
 	rootCmd.PersistentFlags().StringVarP(&name, "name", "n", GetDefaultUsername(), "the name of user")
 	rootCmd.PersistentFlags().StringVarP(&lib.TPURL, "url", "u", lib.DefaultTPURL, "the hyperledger sawtooth rest api url")
 	rootCmd.PersistentFlags().StringVarP(&lib.ValidatorURL, "validator", "V", lib.DefaultValidatorURL, "the hyperledger sawtooth validator tcp url")
 	rootCmd.PersistentFlags().StringVarP(&lib.PrivateKeyFile, "key", "k", lib.DefaultPrivateKeyFile, "the private key file for identity")
-	rootCmd.PersistentFlags().BoolVarP(&debug, "debug", "d", false, "debug version")
 
 }
 
-// initConfig reads in config file and ENV variables if set.
-func initConfig() {
-	if cfgFile != "" {
+// InitConfig reads in config file and ENV variables if set.
+func InitConfig() {
+	if CfgFile != "" {
 		// Use config file from the flag.
-		viper.SetConfigFile(cfgFile)
+		viper.SetConfigFile(CfgFile)
 	} else {
-		// Search config in home directory with name ".SeaStorage" (without extension).
 		viper.AddConfigPath(lib.DefaultConfigPath)
 		viper.SetConfigName(lib.DefaultConfigFilename)
 		if _, err := os.Stat(path.Join(lib.DefaultConfigPath, lib.DefaultConfigFilename+".json")); os.IsNotExist(err) {
@@ -94,22 +85,22 @@ func initConfig() {
 		os.Exit(1)
 	} else {
 		tpURL := viper.GetString("url")
-		if tpURL == "" {
+		if tpURL != "" {
 			lib.DefaultTPURL = tpURL
 		}
 		validatorURL := viper.GetString("validator")
-		if validatorURL == "" {
+		if validatorURL != "" {
 			lib.DefaultValidatorURL = validatorURL
 		}
 		privateKeyFile := viper.GetString("key")
-		if privateKeyFile == "" {
+		if privateKeyFile != "" {
 			lib.DefaultPrivateKeyFile = privateKeyFile
 		}
 	}
 }
 
-// initLogger config logger
-func initLogger() {
+// InitLogger config logger
+func InitLogger() {
 	lib.Logger = logrus.New()
 	lib.Logger.SetFormatter(&logrus.TextFormatter{
 		ForceColors: true,
@@ -125,7 +116,6 @@ func initLogger() {
 	mw := io.MultiWriter(os.Stdout, logFile)
 	lib.Logger.SetOutput(mw)
 	lib.Logger.SetLevel(logrus.DebugLevel)
-
 }
 
 // init config in JSON format
