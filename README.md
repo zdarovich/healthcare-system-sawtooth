@@ -10,6 +10,17 @@ All components are deloyed in the Docker containers
 ## Prerequisites
 - Docker
 
+## Directories and files
+- `/client`: client, which encrypts, decrypts, communicates with the blockchain
+- `/cmd`: commands to run interactive prompt
+- `/crypto`: libraries for encryption/decryption
+- `/docker`: docker infrastructure files
+- `/resources`: pre-built private and public keys for quick testing
+- `/test`: benchmark tests
+- `/tp`: transaction proccessor, which stores users and the data
+- `go.mod`: list of Golang libraries used in the project
+- `go.sum`: hash sums of Golang libraries
+
 ### Commands description
 - `register`: Register current identity as user on the blockchain.
 - `sync`: Sync data from the blockchain.
@@ -136,3 +147,6 @@ docker logs --follow CONTAINER_ID
 brew install zmq
 export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:/usr/local/opt/openssl/lib/pkgconfig
 ```
+
+## NOTE
+- Use MongoDB Compass to explore data stored in the MongoDB

@@ -11,6 +11,7 @@ import (
 type AddressType uint8
 
 var (
+	// User namespace address type
 	AddressTypeUser  AddressType = 0
 	AddressTypeGroup AddressType = 1
 )
@@ -21,6 +22,7 @@ var (
 	GroupNamespace = crypto.SHA256HexFromBytes([]byte("Group"))[:4]
 )
 
+// Storage state struct
 type StorageState struct {
 	context    *processor.Context
 	userCache  map[string][]byte
@@ -28,6 +30,7 @@ type StorageState struct {
 	seaCache   map[string][]byte
 }
 
+// Creates new storage state struct
 func NewSeaStorageState(context *processor.Context) *StorageState {
 	return &StorageState{
 		context:    context,
@@ -37,6 +40,7 @@ func NewSeaStorageState(context *processor.Context) *StorageState {
 	}
 }
 
+// Gets user data stored on the blockchain
 func (sss *StorageState) GetUser(address string) (*user.User, error) {
 	userBytes, ok := sss.userCache[address]
 	if ok {
@@ -53,6 +57,7 @@ func (sss *StorageState) GetUser(address string) (*user.User, error) {
 	return nil, &processor.InvalidTransactionError{Msg: "user doesn't exists"}
 }
 
+// Creates new user data
 func (sss *StorageState) CreateUser(username string, publicKey string) error {
 	address := MakeAddress(AddressTypeUser, username, publicKey)
 	_, ok := sss.userCache[address]

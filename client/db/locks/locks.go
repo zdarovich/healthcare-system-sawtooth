@@ -123,14 +123,6 @@ func getLock(resource string, id string, ttl uint, lockType LockType) error {
 	return nil
 }
 
-// IF SOMETHING IS STALLING AND YOU NEED A QUICK FIX, TRY REPLACING THE ABOVE FUNCTION WITH THIS:
-
-/*
-func getLock(resource string, id string, ttl uint, lockType LockType) error {
-	return nil
-}
-*/
-
 // GetLock gets a lock on the given resource for the current machine.
 func GetLock(resource string, ttl uint) error {
 	return getLock(resource, thisMachineId, ttl, TypeX)
@@ -148,10 +140,6 @@ func getLockWaitWithId(resource, id string, ttl uint, lockType LockType) error {
 	return nil
 }
 
-func GetLockWait(resource string, ttl uint) error {
-	return getLockWaitWithId(resource, thisMachineId, ttl, TypeX)
-}
-
 func getLockWaitGenId(resource string, ttl uint, lockType LockType) (string, error) {
 	b := make([]byte, 256)
 	_, err := rand.Read(b)
@@ -166,14 +154,6 @@ func getLockWaitGenId(resource string, ttl uint, lockType LockType) (string, err
 	}
 
 	return id, nil
-}
-
-func GetLockWaitGenId(resource string, ttl uint) (string, error) {
-	return getLockWaitGenId(resource, ttl, TypeX)
-}
-
-func GetSLockWaitGenId(resource string, ttl uint) (string, error) {
-	return getLockWaitGenId(resource, ttl, TypeS)
 }
 
 // renewLock renews a lock on the given resource for the given machine.
@@ -210,15 +190,6 @@ func getOrRenewLock(resource string, machineId string, ttl uint) error {
 			return err
 		}
 		lockStatuses, statusErr := client.Status(lock.Filter{Resource: resource, TTLgte: 1})
-		/*if statusErr == ErrLockNotFound {
-			err = getLock(resource, machineId, ttl)
-			if err != nil {
-				return err
-			}
-			return nil
-		} else if statusErr != nil {
-			return statusErr
-		}*/
 		if statusErr != nil {
 			return statusErr
 		}
@@ -267,30 +238,5 @@ func UnlockWithId(resource string, id string) error {
 
 	for _, err := client.Unlock(lockId); err != nil; _, err = client.Unlock(lockId) {
 	}
-
-	/*if len(lockStatuses) < 1 || lockStatuses[0].LockId != lockId {
-		return fmt.Errorf("Lock on resource %v by machine %v was not unlocked. No error reported.", resource, machineId)
-	}*/
-
 	return nil
-}
-
-// Unlock unlocks a lock on the given resource by the current machine.
-func Unlock(resource string) error {
-	return UnlockWithId(resource, thisMachineId)
-}
-
-func MachineOwnsLock(resource, machineId string) bool {
-	client, err := getLockClient()
-	if err != nil {
-		return false
-	}
-
-	lockId := getLockId(resource, machineId)
-
-	lockStatuses, err := client.Status(lock.Filter{LockId: lockId})
-	if err == nil && len(lockStatuses) == 1 {
-		return true
-	}
-	return false
 }

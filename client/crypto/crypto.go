@@ -41,6 +41,7 @@ func GenerateDataInfo(name, target, publicKey, username, keyAes, hash string) (i
 	return
 }
 
+// GenerateSharedDataInfo generates the information of shared data for storage system.
 func GenerateSharedDataInfo(name, publicKey, username, keyAes, hash string, size int64) (info tpStorage.DataInfo, err error) {
 
 	keyEncrypt, err := crypto.Encryption(publicKey, keyAes)

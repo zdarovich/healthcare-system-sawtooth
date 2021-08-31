@@ -21,6 +21,7 @@ var (
 	UserCreateData uint = 10
 )
 
+// Payload data model received by the transaction processor
 type StoragePayload struct {
 	Action   uint             `default:"Unset(0)"`
 	Name     string           `default:""`
@@ -29,6 +30,7 @@ type StoragePayload struct {
 	DataInfo storage.DataInfo `default:"DataInfo{}"`
 }
 
+// Creates new payload data model
 func StoragePayloadFromBytes(payloadData []byte) (*StoragePayload, error) {
 	if payloadData == nil {
 		return nil, &processor.InvalidTransactionError{Msg: "Must contain payload"}
@@ -40,6 +42,7 @@ func StoragePayloadFromBytes(payloadData []byte) (*StoragePayload, error) {
 	return pl, err
 }
 
+// Converts new payload data model to bytes
 func (ssp *StoragePayload) ToBytes() []byte {
 	var buf bytes.Buffer
 	enc := gob.NewEncoder(&buf)

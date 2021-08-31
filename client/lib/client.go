@@ -108,17 +108,9 @@ func (cf *ClientFramework) GetData() ([]byte, error) {
 	return GetStateData(cf.GetAddress())
 }
 
-func (cf *ClientFramework) GetDataByAddress(addr string) ([]byte, error) {
-	return GetStateData(addr)
-}
-
 // GetAddress returns the address of user.
 func (cf *ClientFramework) GetAddress() string {
 	return tpState.MakeAddress(tpState.AddressTypeUser, cf.Name, cf.signer.GetPublicKey().AsHex())
-}
-
-func (cf *ClientFramework) GetUserAddress(name, publicKey string) string {
-	return tpState.MakeAddress(tpState.AddressTypeUser, name, publicKey)
 }
 
 // GetPublicKey returns the public key of user.
@@ -139,6 +131,7 @@ func (cf *ClientFramework) DecryptDataKey(key string) ([]byte, error) {
 	return tpCrypto.Decryption(string(cf.PrivKeyHex), key)
 }
 
+// DecryptDataKey returns the key encrypted by user's public key.
 func (cf *ClientFramework) EncryptDataKey(publicKey, key string) ([]byte, error) {
 	return tpCrypto.Encryption(publicKey, key)
 }
@@ -263,6 +256,7 @@ func (cf *ClientFramework) WaitingForCommitted() error {
 	}
 }
 
+// WatchingForState waits for change of the state in the blockchain
 func (cf *ClientFramework) WatchingForState() error {
 	subscription := &events_pb2.EventSubscription{
 		EventType: "sawtooth/state-delta",
@@ -280,6 +274,7 @@ func (cf *ClientFramework) WatchingForState() error {
 	return nil
 }
 
+// Subscribe to any state change events in the blockchain
 func (cf *ClientFramework) subscribeEvents(subscriptions []*events_pb2.EventSubscription) (string, error) {
 	// Construct the subscribeRequest
 	subscribeRequest := &client_event_pb2.ClientEventsSubscribeRequest{
@@ -309,6 +304,7 @@ func (cf *ClientFramework) subscribeEvents(subscriptions []*events_pb2.EventSubs
 	return corrID, nil
 }
 
+// Unsubscribe from any state change events in the blockchain
 func (cf *ClientFramework) unsubscribeEvents(corrID string) error {
 	// Construct the UnsubscribeRequest
 	unsubscribeRequest := &client_event_pb2.ClientEventsUnsubscribeRequest{}
@@ -336,6 +332,7 @@ func (cf *ClientFramework) unsubscribeEvents(corrID string) error {
 	return nil
 }
 
+// Subscribe handler
 func (cf *ClientFramework) subscribeHandler() {
 	for {
 		_, message, err := cf.zmqConn.RecvMsg()
@@ -380,6 +377,7 @@ func (cf *ClientFramework) subscribeHandler() {
 	}
 }
 
+// Zmq connections for event subscription
 func (cf *ClientFramework) generateZmqConnection() error {
 	// Setup a connection to the validator
 	ctx, err := zmq4.NewContext()

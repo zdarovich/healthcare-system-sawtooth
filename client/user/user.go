@@ -126,6 +126,7 @@ func (c *Client) CreatePatientData(name, data string) (*storage.DataInfo, error)
 	return &info, nil
 }
 
+// ListPatientData list all the data owned by the current user
 func (c *Client) ListPatientData() ([]storage.INode, error) {
 	var filtered []storage.INode
 	for _, n := range c.User.Root.Repo.INodes {
@@ -137,6 +138,7 @@ func (c *Client) ListPatientData() ([]storage.INode, error) {
 	return filtered, nil
 }
 
+// GetPatientData get the data owned by the current user by hash
 func (c *Client) GetPatientData(hash string) (string, error) {
 	// Check Destination Path exists
 	di, err := c.User.Root.GetData(hash, c.User.Name)
@@ -164,6 +166,7 @@ func (c *Client) GetPatientData(hash string) (string, error) {
 	return string(out), nil
 }
 
+// ListSharedPatientData lists the data shared by the username
 func (c *Client) ListSharedPatientData(username string) ([]storage.INode, error) {
 	_, user, err := c.GetUser(username)
 	if err != nil {
@@ -180,6 +183,7 @@ func (c *Client) ListSharedPatientData(username string) ([]storage.INode, error)
 	return filtered, nil
 }
 
+// GetSharedPatientData gets the data shared by hash and username
 func (c *Client) GetSharedPatientData(hash, username string) (string, error) {
 	_, user, err := c.GetUser(username)
 	if err != nil {
@@ -212,6 +216,7 @@ func (c *Client) GetSharedPatientData(hash, username string) (string, error) {
 	return string(out), nil
 }
 
+// ShareData share the data owned by the current user
 func (c *Client) ShareData(hash, username string) error {
 	di, err := c.User.Root.GetData(hash, c.User.Name)
 	if err != nil {
@@ -250,6 +255,7 @@ func (c *Client) ShareData(hash, username string) error {
 	}}, addresses, addresses)
 }
 
+// GetUser get current user data
 func (c *Client) GetUser(username string) (string, *tpUser.User, error) {
 	for a, u := range c.QueryCache {
 		if u.Name == username {

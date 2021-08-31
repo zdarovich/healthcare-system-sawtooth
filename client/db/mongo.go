@@ -14,6 +14,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+// Data model for MongoDB
 type Data struct {
 	OID     *primitive.ObjectID `json:"OID" bson:"_id,omitempty"`
 	Hash    string              `json:"hash"`
@@ -21,14 +22,19 @@ type Data struct {
 	Payload string              `json:"payload"`
 }
 
+// MongoDB connection client
 var mongoClient *mongo.Client
+
+// Data read/write race condition prevention variables
 var mongoInit uint32
 var mongoMu sync.Mutex
 
 const (
+	// Name of the table in MongoDB
 	MongoDataCollection = "Datas"
 )
 
+// Save stores data into the database
 func (d *Data) Save() (*primitive.ObjectID, error) {
 
 	ctx, cancel := GetMongoContext()
@@ -48,6 +54,7 @@ func (d *Data) Save() (*primitive.ObjectID, error) {
 	return &objID, nil
 }
 
+// GetByHash gets data from the database
 func GetByHash(ctx context.Context, hash string) (*Data, error) {
 	col, err := getMongoDataCollection(ctx)
 	if err != nil {
@@ -65,6 +72,7 @@ func GetByHash(ctx context.Context, hash string) (*Data, error) {
 	return &pms, nil
 }
 
+// Get table name
 func getMongoDataCollection(ctx context.Context) (*mongo.Collection, error) {
 	return GetMongoCollection(ctx, MongoDataCollection)
 }
@@ -126,6 +134,7 @@ func GetMongoContext() (context.Context, context.CancelFunc) {
 	return ctx, cancel
 }
 
+// Get table name
 func GetMongoCollection(ctx context.Context, colName string) (*mongo.Collection, error) {
 	client, err := GetMongoClient(ctx)
 	if err != nil {
@@ -134,6 +143,7 @@ func GetMongoCollection(ctx context.Context, colName string) (*mongo.Collection,
 	return client.Database(GetMongoDbName()).Collection(colName), nil
 }
 
+// Creates indexes for better search
 func CreateIndexes(ctx context.Context, client *mongo.Client) error {
 	col := client.Database(GetMongoDbName()).Collection(MongoDataCollection)
 
@@ -152,6 +162,7 @@ func CreateIndexes(ctx context.Context, client *mongo.Client) error {
 	return nil
 }
 
+// Creates MongoDB connection client
 func newMongoClient(ctx context.Context, url string) (*mongo.Client, error) {
 	// Set client options
 	clientOptions := options.Client().ApplyURI(url)

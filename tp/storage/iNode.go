@@ -8,6 +8,7 @@ import (
 	"sync"
 )
 
+// Interface for data metadata
 type INode interface {
 	GetName() string
 	GetSize() int64
