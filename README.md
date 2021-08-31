@@ -1,11 +1,14 @@
-# healthcare-system-sawtooth
+# Healthcare system on Hyperledger Sawtooth
 ## Intro
 Healthcare system decentralized data storage.
 Encrypted keys are stored on the Hyperledger Sawtooth blockchain.
 Encrypted data is stored on the off-chain using MongoDB.
 Blockhain is accessed using transaction proccessor, which stores user data, user shared data, encrypted keys.
 Storage is managed by the client, which fetches data from MongoDB and decrypts cipher using data from the blockchain.sawtooth
+All components are deloyed in the Docker containers
 
+## Prerequisites
+- Docker
 
 ### Commands description
 - `register`: Register current identity as user on the blockchain.
