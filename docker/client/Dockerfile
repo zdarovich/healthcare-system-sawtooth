@@ -10,4 +10,3 @@ COPY . .
 RUN CGO_ENABLED=1 \
   GOOS=linux \
   go build -o /app/main cmd/client/main.go
-RUN ["chmod", "+x", "/app/main"]

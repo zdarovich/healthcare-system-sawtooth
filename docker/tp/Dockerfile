@@ -12,5 +12,4 @@ RUN CGO_ENABLED=1 \
   go build -o /app/main cmd/tp/main.go
 RUN ["chmod", "+x", "/app/main"]
 
-ENTRYPOINT ["/app/main -vv -C tcp://validator:4004"]
 

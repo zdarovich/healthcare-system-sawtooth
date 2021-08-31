@@ -1,9 +1,7 @@
 package test
 
 import (
-	"fmt"
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 	"healthcare-system-sawtooth/client/lib"
 	"io/ioutil"
 	"math"
@@ -22,14 +20,9 @@ func init() {
 	rand.Seed(time.Now().UnixNano())
 	lib.Logger = logrus.New()
 	lib.Logger.Out = ioutil.Discard
-	viper.SetConfigFile("resources/config.json")
-
-	viper.SetConfigType("json")
-
-	err := viper.ReadInConfig()
-	if err != nil {
-		fmt.Println(err)
-	}
+	lib.MongoDbUrl = "mongodb://mongodb:27017"
+	lib.ValidatorURL = lib.DefaultValidatorURL
+	lib.TPURL = lib.DefaultTPURL
 }
 
 func RandStringRunes(n int) string {
