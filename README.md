@@ -50,11 +50,11 @@ docker run -t -i --rm --network docker_default docker_healthcare-system-client /
 ```
 ### Run a identity and register it
 ```
-docker run -t -i --rm --network docker_default docker_healthcare-system-client /app/main user -n a -u rest-api-1:8008 -V tcp://validator-1:4004 -k /app/resources/keys/a.priv
+docker run -t -i --rm --network docker_default docker_healthcare-system-client /app/main user -n a -u rest-api-0:8008 -V tcp://validator-0:4004 -k /app/resources/keys/a.priv
 ```
 ### Run b identity and register it
 ```
-docker run -t -i --rm --network docker_default docker_healthcare-system-client /app/main user -n b -u rest-api-1:8008 -V tcp://validator-1:4004 -k /app/resources/keys/b.priv
+docker run -t -i --rm --network docker_default docker_healthcare-system-client /app/main user -n b -u rest-api-0:8008 -V tcp://validator-0:4004 -k /app/resources/keys/b.priv
 ```
 ### Run benchmark tests
 ```
@@ -133,9 +133,9 @@ docker ps | grep 'hyperledger' | awk '{print $1}' | xargs docker stop
 docker ps | grep 'docker_' | awk '{print $1}' | xargs docker stop
 docker container rm $(docker ps --filter "status=exited" | grep 'hyperledger' | awk '{print $1}')
 docker container rm $(docker ps --filter "status=exited" | grep 'docker_' | awk '{print $1}')
-docker volume rm docker_poet-shared
 docker rmi $(docker images | grep 'hyperledger' | awk '{print $3}') --force
 docker rmi $(docker images | grep 'docker_' | awk '{print $3}') --force
+docker volume rm docker_poet-shared
 ```
 
 ### View docker logs
