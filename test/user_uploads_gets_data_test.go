@@ -32,7 +32,7 @@ func Test_User_Uploads_Gets_Data_100_times(t *testing.T) {
 		data := RandStringRunes(rand.Intn(100))
 
 		start := time.Now()
-		dataInfo, err := cli.CreatePatientData(dataName, data)
+		dataInfo, err := cli.CreatePatientData(dataName, data, 0)
 		if err != nil {
 			t.Error(err)
 			fails++
@@ -51,7 +51,7 @@ func Test_User_Uploads_Gets_Data_100_times(t *testing.T) {
 	stats.Reset()
 	for _, hash := range dataHashMap {
 		start := time.Now()
-		_, err := cli.GetPatientData(hash)
+		_, _, err := cli.GetPatientData(hash)
 		if err != nil {
 			t.Error(err)
 			fails++

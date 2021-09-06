@@ -42,23 +42,23 @@ docker-compose -f docker/sawtooth-default.yaml up -d
 ```
 ### Run command client help
 ```
-docker run -t -i --rm --network docker_default docker_healthcare-system-client /app/main user -h
+docker run -t -i --rm --network docker_default docker_healthcare-system-client-admin /app/main user -h
 ```
-### Run admin identity and register it
+### Run 'admin' identity and register it
 ```
-docker run -t -i --rm --network docker_default docker_healthcare-system-client /app/main user -n admin -u rest-api-0:8008 -V tcp://validator-0:4004 -k /app/resources/keys/admin.priv
+docker run -t -i --rm --network docker_default docker_healthcare-system-client-admin /app/main user -n admin -u rest-api-0:8008 -V tcp://validator-0:4004 -k /app/resources/keys/admin.priv
 ```
-### Run a identity and register it
+### Run 'patientA' identity and register it
 ```
-docker run -t -i --rm --network docker_default docker_healthcare-system-client /app/main user -n a -u rest-api-0:8008 -V tcp://validator-0:4004 -k /app/resources/keys/a.priv
+docker run -t -i --rm --network docker_default docker_healthcare-system-client-patient-a /app/main user -n patientA -u rest-api-0:8008 -V tcp://validator-0:4004 -k /app/resources/keys/patientA.priv
 ```
-### Run b identity and register it
+### Run 'patientB' identity and register it
 ```
-docker run -t -i --rm --network docker_default docker_healthcare-system-client /app/main user -n b -u rest-api-0:8008 -V tcp://validator-0:4004 -k /app/resources/keys/b.priv
+docker run -t -i --rm --network docker_default docker_healthcare-system-client-patient-b /app/main user -n patientB -u rest-api-0:8008 -V tcp://validator-0:4004 -k /app/resources/keys/patientB.priv
 ```
 ### Run benchmark tests
 ```
-docker run -t -i --rm --network docker_default docker_healthcare-system-client go test -v test/*_test.go
+docker run -t -i --rm --network docker_default docker_healthcare-system-client-admin go test -v test/*_test.go
 ```
 
 ### Benchmark output description
@@ -74,24 +74,45 @@ docker run -t -i --rm --network docker_default docker_healthcare-system-client g
 - `StdDev`: The population standard deviation
 - `Rate/sec.`: Per-second rate based on cumulative time and sample count.
 
+
+## Example. Doctor
+1. Start and register 'doctorA' identity
+```
+docker run -t -i --rm --network docker_default docker_healthcare-system-client-doctor-a /app/main user -n doctorA -u rest-api-0:8008 -V tcp://validator-0:4004 -k /app/resources/keys/doctorA.priv
+```
+1. Start and register 'patientA' identity
+```
+docker run -t -i --rm --network docker_default docker_healthcare-system-client-patient-a /app/main user -n patientA -u rest-api-0:8008 -V tcp://validator-0:4004 -k /app/resources/keys/patientA.priv
+```
+2. Batch upload 'patientA' data from csv
+```
+batch-upload /app/resources/data/patientA.csv
+```
+
+4. Start and register 'thirdPartyA' identity
+```
+docker run -t -i --rm --network docker_default docker_healthcare-system-client-thirdparty-a /app/main user -n thirdPartyA -u rest-api-0:8008 -V tcp://validator-0:4004 -k /app/resources/keys/thirdPartyA.priv
+```
+
+
 ## Example. How to access shared data. Step by step.
 1. Run help from prompt to get information about possible commands
 ```
-docker run -t -i --rm --network docker_default docker_healthcare-system-client /app/main user -h
+docker run -t -i --rm --network docker_default docker_healthcare-system-client-admin /app/main user -h
 ```
 2. Start and register 'admin' identity in the first place because Sawtooth blockchain requires admin user identity
 ```
-docker run -t -i --rm --network docker_default docker_healthcare-system-client /app/main user -n admin -u rest-api-0:8008 -V tcp://validator-0:4004 -k /app/resources/keys/admin.priv
+docker run -t -i --rm --network docker_default docker_healthcare-system-client-admin /app/main user -n admin -u rest-api-0:8008 -V tcp://validator-0:4004 -k /app/resources/keys/admin.priv
 ```
-3. Choose exit in the prompt. To force exit use Ctrl + C
-4. Start and register 'a' identity
+3. Type in 'exit' in the prompt. To force exit use Ctrl + C
+4. Start and register 'patientA' identity
 ```
-docker run -t -i --rm --network docker_default docker_healthcare-system-client /app/main user -n a -u rest-api-0:8008 -V tcp://validator-0:4004 -k /app/resources/keys/a.priv
+docker run -t -i --rm --network docker_default docker_healthcare-system-client-patient-a /app/main user -n patientA -u rest-api-0:8008 -V tcp://validator-0:4004 -k /app/resources/keys/patientA.priv
 ```
-5. Choose exit in the prompt. To force exit use Ctrl + C
-6. Start and register 'b' identity
+5. Type in 'exit' in the prompt. To force exit use Ctrl + C
+6. Start and register 'patientB' identity
 ```
-docker run -t -i --rm --network docker_default docker_healthcare-system-client /app/main user -n b -u rest-api-0:8008 -V tcp://validator-0:4004 -k /app/resources/keys/b.priv
+docker run -t -i --rm --network docker_default docker_healthcare-system-client-patient-b /app/main user -n patientB -u rest-api-0:8008 -V tcp://validator-0:4004 -k /app/resources/keys/patientB.priv
 ```
 7. Write command to create data on the blockchain. First argument is the name of the data. Second argument is the data itself. Data can be string of any length and format.
 ```
@@ -112,9 +133,9 @@ First argument takes hash of the data, second argument accepts username.
 share fsdfsfsdfsd a
 ```
 11. Choose exit in the prompt. To force exit use Ctrl + C
-12. Start 'a' identity
+12. Start 'patientA' identity
 ```
-docker run -t -i --rm --network docker_default docker_healthcare-system-client /app/main user -n a -u rest-api-0:8008 -V tcp://validator-0:4004 -k /app/resources/keys/a.priv
+docker run -t -i --rm --network docker_default docker_healthcare-system-client-patient-a /app/main user -n patientA -u rest-api-0:8008 -V tcp://validator-0:4004 -k /app/resources/keys/patientA.priv
 ```
 13. List shared data by username. First argument accepts username.
 ```
@@ -125,7 +146,6 @@ ls-shared b
 get-shared fsdfsfsdfsd b
 ```
 
-
 ## Utility commands
 ### Delete all images, containers, volumes
 ```
@@ -135,7 +155,18 @@ docker container rm $(docker ps --filter "status=exited" | grep 'hyperledger' | 
 docker container rm $(docker ps --filter "status=exited" | grep 'docker_' | awk '{print $1}')
 docker rmi $(docker images | grep 'hyperledger' | awk '{print $3}') --force
 docker rmi $(docker images | grep 'docker_' | awk '{print $3}') --force
+docker volume rm $(docker volume ls | awk '{print $2}')
 docker volume rm docker_poet-shared
+```
+
+```
+docker ps | grep 'hyperledger/sawtooth-validator:1.1' | awk '{print $1}' | xargs docker stop
+docker ps | grep 'docker_healthcare-system-client-' | awk '{print $1}' | xargs docker stop
+docker ps | grep 'docker_healthcare-system-tp' | awk '{print $1}' | xargs docker stop
+docker container rm $(docker ps --filter "status=exited" | grep 'hyperledger/sawtooth-validator:1.1' | awk '{print $1}')
+docker container rm $(docker ps --filter "status=exited" | grep 'docker_healthcare-system-tp' | awk '{print $1}')
+docker rmi $(docker images | grep 'docker_healthcare-system-tp' | awk '{print $3}') --force
+docker rmi $(docker images | grep 'docker_healthcare-system-client-' | awk '{print $3}') --force
 ```
 
 ### View docker logs

@@ -45,7 +45,7 @@ func (h *Handler) Apply(request *processor_pb2.TpProcessRequest, context *proces
 	if err != nil {
 		return err
 	}
-	st := state.NewSeaStorageState(context)
+	st := state.NewStorageState(context)
 
 	logger.Debugf("Healthcare txn %v: user %v: payload: Name='%v', Action='%v', Target='%v', DataInfo='%v'", request.Signature, user, pl.Name, pl.Action, pl.DataInfo)
 

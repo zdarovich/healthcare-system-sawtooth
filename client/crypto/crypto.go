@@ -5,38 +5,40 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
-	"healthcare-system-sawtooth/client/db"
+	"healthcare-system-sawtooth/client/db/models"
 	"healthcare-system-sawtooth/client/lib"
 	"healthcare-system-sawtooth/crypto"
 	tpStorage "healthcare-system-sawtooth/tp/storage"
 )
 
 // GenerateDataInfo generate the information of data for storage system.
-func GenerateDataInfo(name, target, publicKey, username, keyAes, hash string) (info tpStorage.DataInfo, err error) {
+func GenerateDataInfo(name, target, publicKey, username, keyAes string, accessType uint, expiration int64) (info tpStorage.DataInfo, err error) {
 
 	keyEncrypt, err := crypto.Encryption(publicKey, keyAes)
 	if err != nil {
 		return
 	}
-	_, out, err := EncryptData([]byte(target), crypto.HexToBytes(keyAes))
+	hash, out, err := EncryptData([]byte(target), crypto.HexToBytes(keyAes))
 	if err != nil {
 		return
 	}
-	data := &db.Data{
-		Name:    name,
-		Hash:    hash,
-		Payload: crypto.BytesToHex(out),
+	data := &models.Data{
+		Name:       name,
+		Hash:       hash,
+		Payload:    crypto.BytesToHex(out),
+		Expiration: expiration,
 	}
 	_, err = data.Save()
 	if err != nil {
 		return
 	}
 	info = tpStorage.DataInfo{
-		Name: name,
-		Size: int64(len(target)),
-		Hash: hash,
-		Addr: username,
-		Key:  crypto.BytesToHex(keyEncrypt),
+		Name:       name,
+		Size:       int64(len(target)),
+		Hash:       hash,
+		Addr:       username,
+		Key:        crypto.BytesToHex(keyEncrypt),
+		AccessType: accessType,
 	}
 	return
 }

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
+	"healthcare-system-sawtooth/client/db/models"
 	"healthcare-system-sawtooth/client/lib"
 	"healthcare-system-sawtooth/client/user"
 	tpStorage "healthcare-system-sawtooth/tp/storage"
@@ -24,6 +25,11 @@ var userCommands = []string{
 	"ls-shared",
 	"get",
 	"get-shared",
+	"request-as-third-party",
+	"request-as-trusted-party",
+	"list-requests",
+	"process-request",
+	"batch-upload",
 	"exit",
 }
 
@@ -56,7 +62,10 @@ communicating with the transaction processor.`,
 				fmt.Println(err)
 			}
 		}
-
+		err = cli.RemovedExpiredData()
+		if err != nil {
+			fmt.Println(err)
+		}
 		defer cli.Close()
 		for {
 			prompt := promptui.Prompt{
@@ -86,6 +95,7 @@ communicating with the transaction processor.`,
 				continue
 			}
 			if commands[0] == "exit" {
+				os.Exit(1)
 				return
 			} else if commands[0] == "register" {
 				if cli.User != nil {
@@ -132,7 +142,7 @@ communicating with the transaction processor.`,
 				} else if len(commands) > 3 {
 					fmt.Println(errInvalidPath)
 				} else {
-					_, err = cli.CreatePatientData(commands[1], commands[2])
+					_, err = cli.CreatePatientData(commands[1], commands[2], 0)
 					if err != nil {
 						fmt.Println(err)
 					}
@@ -154,7 +164,7 @@ communicating with the transaction processor.`,
 				} else if len(commands) > 2 {
 					fmt.Println(errInvalidPath)
 				} else {
-					data, err := cli.GetPatientData(commands[1])
+					_, data, err := cli.GetPatientData(commands[1])
 					if err != nil {
 						fmt.Println(err)
 					} else {
@@ -177,7 +187,7 @@ communicating with the transaction processor.`,
 				} else if len(commands) > 3 {
 					fmt.Println(errInvalidPath)
 				} else {
-					data, err := cli.GetSharedPatientData(commands[1], commands[2])
+					_, data, err := cli.GetSharedPatientData(commands[1], commands[2])
 					if err != nil {
 						fmt.Println(err)
 					} else {
@@ -199,7 +209,66 @@ communicating with the transaction processor.`,
 						}
 					}
 				}
+			case "request-as-third-party":
+				if len(commands) < 4 {
+					fmt.Println(errMissingOperand)
+				} else if len(commands) > 4 {
+					fmt.Println(errInvalidPath)
+				} else {
+					err := cli.RequestData(commands[1], commands[2], commands[3])
+					if err != nil {
+						fmt.Println(err)
+					}
+				}
+			case "request-as-trusted-party":
+				if len(commands) < 2 {
+					fmt.Println(errMissingOperand)
+				} else if len(commands) > 2 {
+					fmt.Println(errInvalidPath)
+				} else {
+					err := cli.RequestData(commands[1], commands[1], "0")
+					if err != nil {
+						fmt.Println(err)
+					}
+				}
+			case "list-requests":
+				reqs, err := cli.ListRequests()
+				if err != nil {
+					fmt.Println(err)
+				} else {
+					for _, n := range reqs {
+						printRequest(n)
+					}
+				}
+			case "process-request":
+				if len(commands) < 3 {
+					fmt.Println(errMissingOperand)
+				} else if len(commands) > 3 {
+					fmt.Println(errInvalidPath)
+				} else {
+					var accept bool
+					if commands[2] == "true" {
+						accept = true
+					}
+					err := cli.ProcessRequest(commands[1], accept)
+					if err != nil {
+						fmt.Println(err)
+					}
+				}
+			case "batch-upload":
+				if len(commands) < 2 {
+					fmt.Println(errMissingOperand)
+				} else if len(commands) > 2 {
+					fmt.Println(errInvalidPath)
+				} else {
+
+					err := cli.BatchUpload(commands[1])
+					if err != nil {
+						fmt.Println(err)
+					}
+				}
 			}
+
 		}
 	},
 }
@@ -211,6 +280,15 @@ func init() {
 // printINode display the information of iNode.
 func printINode(iNode tpStorage.INode) {
 	data, err := json.MarshalIndent(iNode, "", "\t")
+	if err != nil {
+		fmt.Println(err)
+	} else {
+		fmt.Println(string(data))
+	}
+}
+
+func printRequest(req *models.Request) {
+	data, err := json.MarshalIndent(req, "", "\t")
 	if err != nil {
 		fmt.Println(err)
 	} else {

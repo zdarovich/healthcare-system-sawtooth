@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"healthcare-system-sawtooth/client/lib"
 	"log"
 	"sync"
@@ -9,18 +10,15 @@ import (
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-// Data model for MongoDB
-type Data struct {
-	OID     *primitive.ObjectID `json:"OID" bson:"_id,omitempty"`
-	Hash    string              `json:"hash"`
-	Name    string              `json:"name"`
-	Payload string              `json:"payload"`
-}
+const (
+	// Name of the table in MongoDB
+	MongoDataCollection    = "Datas"
+	MongoRequestCollection = "Requests"
+)
 
 // MongoDB connection client
 var mongoClient *mongo.Client
@@ -28,54 +26,6 @@ var mongoClient *mongo.Client
 // Data read/write race condition prevention variables
 var mongoInit uint32
 var mongoMu sync.Mutex
-
-const (
-	// Name of the table in MongoDB
-	MongoDataCollection = "Datas"
-)
-
-// Save stores data into the database
-func (d *Data) Save() (*primitive.ObjectID, error) {
-
-	ctx, cancel := GetMongoContext()
-	defer cancel()
-	col, err := getMongoDataCollection(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	res, err := col.InsertOne(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-
-	objID := res.InsertedID.(primitive.ObjectID)
-	d.OID = &objID
-	return &objID, nil
-}
-
-// GetByHash gets data from the database
-func GetByHash(ctx context.Context, hash string) (*Data, error) {
-	col, err := getMongoDataCollection(ctx)
-	if err != nil {
-		return nil, err
-	}
-	var pms Data
-	err = col.FindOne(ctx, bson.M{"hash": bson.M{"$eq": hash}}).Decode(&pms)
-	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return nil, nil
-		}
-		return nil, err
-	}
-
-	return &pms, nil
-}
-
-// Get table name
-func getMongoDataCollection(ctx context.Context) (*mongo.Collection, error) {
-	return GetMongoCollection(ctx, MongoDataCollection)
-}
 
 // GetMongoDbName retrieves the database name to use
 func GetMongoDbName() string {
@@ -181,4 +131,8 @@ func newMongoClient(ctx context.Context, url string) (*mongo.Client, error) {
 
 	log.Println("Connected to MongoDB!")
 	return client, nil
+}
+
+func GetMongoObject(ctx context.Context, collection *mongo.Collection, id *primitive.ObjectID) *mongo.SingleResult {
+	return collection.FindOne(ctx, bson.M{"_id": id})
 }

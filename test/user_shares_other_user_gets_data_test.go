@@ -43,7 +43,7 @@ func Test_User_Shares_Other_User_Gets_Data_100_times(t *testing.T) {
 	}
 	dataName := uuid.New().String()
 	data := RandStringRunes(rand.Intn(100))
-	dataInfo, err := cli.CreatePatientData(dataName, data)
+	dataInfo, err := cli.CreatePatientData(dataName, data, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -68,7 +68,7 @@ func Test_User_Shares_Other_User_Gets_Data_100_times(t *testing.T) {
 	stats.Reset()
 	for _, cli := range testUsersClients {
 		start := time.Now()
-		_, err = cli.GetSharedPatientData(dataInfo.Hash, creator)
+		_, _, err = cli.GetSharedPatientData(dataInfo.Hash, creator)
 		if err != nil {
 			t.Error(err)
 			fails++

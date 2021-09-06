@@ -98,17 +98,61 @@ services:
       - "mongodb_data:/data/db"
       - "mongodb_config:/data/configdb"
 
-  healthcare-system-client:
+  healthcare-system-client-admin:
     build:
       context: ../
       dockerfile: docker/client/Dockerfile
-    container_name: healthcare-system-client
+    container_name: healthcare-system-client-admin
+    expose:
+      - 4004
+    stop_signal: SIGKILL
+
+  healthcare-system-client-patient-a:
+    build:
+      context: ../
+      dockerfile: docker/client/Dockerfile
+    container_name: healthcare-system-client-patient-a
+    expose:
+      - 4004
+    stop_signal: SIGKILL
+
+  healthcare-system-client-patient-b:
+    build:
+      context: ../
+      dockerfile: docker/client/Dockerfile
+    container_name: healthcare-system-client-patient-b
+    expose:
+      - 4004
+    stop_signal: SIGKILL
+
+  healthcare-system-client-doctor-a:
+    build:
+      context: ../
+      dockerfile: docker/client/Dockerfile
+    container_name: healthcare-system-client-doctor-a
+    expose:
+      - 4004
+    stop_signal: SIGKILL
+
+  healthcare-system-client-thirdparty-a:
+    build:
+      context: ../
+      dockerfile: docker/client/Dockerfile
+    container_name: healthcare-system-client-thirdparty-a
+    expose:
+      - 4004
+    stop_signal: SIGKILL
+
+  healthcare-system-client-thirdparty-b:
+    build:
+      context: ../
+      dockerfile: docker/client/Dockerfile
+    container_name: healthcare-system-client-thirdparty-b
     expose:
       - 4004
     stop_signal: SIGKILL
 
   healthcare-system-tp:
-    image: hyperledger/healthcare-system-tp
     container_name: healthcare-system-tp
     expose:
       - 4004

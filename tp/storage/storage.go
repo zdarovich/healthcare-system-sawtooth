@@ -18,11 +18,12 @@ type Root struct {
 
 // FileInfo is the information of files for usage.
 type DataInfo struct {
-	Name string
-	Size int64
-	Hash string
-	Key  string
-	Addr string
+	Name       string
+	Size       int64
+	Hash       string
+	Key        string
+	Addr       string
+	AccessType uint
 }
 
 // NewRoot is the construct for Root.
@@ -34,13 +35,14 @@ func NewRoot(repo *Repo, keyMap *FileKeyMap) *Root {
 }
 
 // NewFileInfo is the construct for FileInfo.
-func NewDataInfo(name string, size int64, hash string, key string, addr string) *DataInfo {
+func NewDataInfo(name string, size int64, hash string, key string, addr string, access uint) *DataInfo {
 	return &DataInfo{
-		Name: name,
-		Size: size,
-		Hash: hash,
-		Key:  key,
-		Addr: addr,
+		Name:       name,
+		Size:       size,
+		Hash:       hash,
+		Key:        key,
+		Addr:       addr,
+		AccessType: access,
 	}
 }
 
@@ -52,7 +54,7 @@ func GenerateRoot() *Root {
 // CreateFile generate file in the path and store its information.
 func (root *Root) CreateData(info DataInfo) error {
 	fileKeyIndex := root.Keys.AddKey(info.Key, true)
-	err := root.Repo.CreateData(info.Name, info.Hash, fileKeyIndex, info.Addr, info.Size)
+	err := root.Repo.CreateData(info.Name, info.Hash, fileKeyIndex, info.Addr, info.Size, info.AccessType)
 	if err != nil {
 		return err
 	}
@@ -68,7 +70,7 @@ func (root *Root) GetData(hash, addr string) (data *DataInfo, err error) {
 		return nil, nil
 	}
 	key := root.Keys.GetKey(f.KeyIndex)
-	return NewDataInfo(f.Name, f.Size, f.Hash, key.Key, addr), nil
+	return NewDataInfo(f.Name, f.Size, f.Hash, key.Key, addr, f.AccessType), nil
 }
 
 // ToBytes convert root to byte slice.

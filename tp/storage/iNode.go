@@ -8,6 +8,12 @@ import (
 	"sync"
 )
 
+var (
+	Unset    uint = 0
+	Regular  uint = 1
+	Critical uint = 2
+)
+
 // Interface for data metadata
 type INode interface {
 	GetName() string
@@ -15,6 +21,7 @@ type INode interface {
 	GetHash() string
 	GetAddr() string
 	GetKeys() []string
+	GetAccessType() uint
 	ToBytes() []byte
 	ToJson() string
 	lock()
@@ -22,12 +29,13 @@ type INode interface {
 }
 
 type Data struct {
-	mutex    sync.Mutex
-	Name     string
-	Hash     string
-	Size     int64
-	KeyIndex string
-	Addr     string
+	mutex      sync.Mutex
+	Name       string
+	Hash       string
+	Size       int64
+	KeyIndex   string
+	Addr       string
+	AccessType uint
 }
 
 type Repo struct {
@@ -120,6 +128,10 @@ func (d *Data) GetKeys() []string {
 	return []string{d.KeyIndex}
 }
 
+func (d *Data) GetAccessType() uint {
+	return d.AccessType
+}
+
 func (d *Data) ToBytes() []byte {
 	var buf bytes.Buffer
 	enc := gob.NewEncoder(&buf)
@@ -132,7 +144,7 @@ func (d *Data) ToJson() string {
 	return string(data)
 }
 
-func (r *Repo) CreateData(name, hash, keyIndex, addr string, size int64) error {
+func (r *Repo) CreateData(name, hash, keyIndex, addr string, size int64, accessType uint) error {
 
 	for j := 0; j < len(r.INodes); j++ {
 		if r.INodes[j].GetHash() == hash && r.INodes[j].GetAddr() == addr {
@@ -146,6 +158,7 @@ func (r *Repo) CreateData(name, hash, keyIndex, addr string, size int64) error {
 	data.Size = size
 	data.KeyIndex = keyIndex
 	data.Addr = addr
+	data.AccessType = accessType
 	r.INodes = append(r.INodes, data)
 	return nil
 }

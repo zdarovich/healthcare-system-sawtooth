@@ -3,10 +3,15 @@ package user
 import (
 	"context"
 	"encoding/base64"
+	"encoding/csv"
 	"errors"
 	"fmt"
-	"healthcare-system-sawtooth/client/db"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"healthcare-system-sawtooth/client/db/models"
 	"healthcare-system-sawtooth/tp/storage"
+	"os"
+	"strconv"
+	"time"
 
 	"github.com/sirupsen/logrus"
 	"healthcare-system-sawtooth/client/crypto"
@@ -95,21 +100,13 @@ func (c *Client) UserRegister() error {
 
 // CreatePatientData create new data of the source.
 // upload data into MongoDB, then send transaction.
-func (c *Client) CreatePatientData(name, data string) (*storage.DataInfo, error) {
-	hash, err := crypto.CalDataHash(data)
+func (c *Client) CreatePatientData(name, data string, accessType uint) (*storage.DataInfo, error) {
+	err := c.Sync()
 	if err != nil {
 		return nil, err
-	}
-	// Check Destination Path exists
-	di, err := c.User.Root.GetData(hash, c.User.Name)
-	if err != nil {
-		return nil, err
-	}
-	if di != nil {
-		return nil, errors.New("data exist already")
 	}
 	keyAES := tpCrypto.GenerateRandomAESKey(lib.AESKeySize)
-	info, err := crypto.GenerateDataInfo(name, data, c.GetPublicKey(), c.User.Name, tpCrypto.BytesToHex(keyAES), hash)
+	info, err := crypto.GenerateDataInfo(name, data, c.GetPublicKey(), c.User.Name, tpCrypto.BytesToHex(keyAES), accessType, 0)
 	if err != nil {
 		return nil, err
 	}
@@ -128,6 +125,10 @@ func (c *Client) CreatePatientData(name, data string) (*storage.DataInfo, error)
 
 // ListPatientData list all the data owned by the current user
 func (c *Client) ListPatientData() ([]storage.INode, error) {
+	err := c.Sync()
+	if err != nil {
+		return nil, err
+	}
 	var filtered []storage.INode
 	for _, n := range c.User.Root.Repo.INodes {
 		if n.GetAddr() != c.User.Name {
@@ -139,106 +140,134 @@ func (c *Client) ListPatientData() ([]storage.INode, error) {
 }
 
 // GetPatientData get the data owned by the current user by hash
-func (c *Client) GetPatientData(hash string) (string, error) {
+func (c *Client) GetPatientData(hash string) (*storage.DataInfo, string, error) {
+	err := c.Sync()
+	if err != nil {
+		return nil, "", err
+	}
 	// Check Destination Path exists
 	di, err := c.User.Root.GetData(hash, c.User.Name)
 	if err != nil {
-		return "", err
+		return nil, "", err
 	}
 	if di == nil {
-		return "", errors.New("data doesn't exist")
+		return nil, "", errors.New("data doesn't exist")
 	}
 	ctx := context.Background()
-	d, err := db.GetByHash(ctx, hash)
+	d, err := models.GetDataByHashes(ctx, []string{hash})
 	if err != nil {
-		return "", err
+		return nil, "", err
 	}
 	keyAes, err := c.DecryptDataKey(di.Key)
 	if err != nil {
 		fmt.Println("failed to decrypt file key:", err)
-		return "", err
+		return nil, "", err
 	}
-	_, out, err := crypto.DecryptData(tpCrypto.HexToBytes(d.Payload), keyAes)
+	_, out, err := crypto.DecryptData(tpCrypto.HexToBytes(d[0].Payload), keyAes)
 	if err != nil {
-		return "", err
+		return nil, "", err
 	}
 
-	return string(out), nil
+	return di, string(out), nil
 }
 
 // ListSharedPatientData lists the data shared by the username
 func (c *Client) ListSharedPatientData(username string) ([]storage.INode, error) {
+	err := c.Sync()
+	if err != nil {
+		return nil, err
+	}
 	_, user, err := c.GetUser(username)
 	if err != nil {
 		return nil, err
 	}
 
-	var filtered []storage.INode
+	var hashes []string
+	nodeMap := make(map[string]storage.INode, 0)
 	for _, n := range user.Root.Repo.INodes {
 		if n.GetAddr() != c.User.Name {
 			continue
 		}
-		filtered = append(filtered, n)
+		hashes = append(hashes, n.GetHash())
+		nodeMap[n.GetHash()] = n
+	}
+	ctx := context.Background()
+	if len(hashes) == 0 {
+		return nil, nil
+	}
+	datas, err := models.GetDataByHashes(ctx, hashes)
+	if err != nil {
+		return nil, err
+	}
+	var filtered []storage.INode
+	for _, data := range datas {
+		inode, ok := nodeMap[data.Hash]
+		if !ok {
+			continue
+		}
+		filtered = append(filtered, inode)
 	}
 	return filtered, nil
 }
 
 // GetSharedPatientData gets the data shared by hash and username
-func (c *Client) GetSharedPatientData(hash, username string) (string, error) {
+func (c *Client) GetSharedPatientData(hash, username string) (*storage.DataInfo, string, error) {
+	err := c.Sync()
+	if err != nil {
+		return nil, "", err
+	}
 	_, user, err := c.GetUser(username)
 	if err != nil {
-		return "", err
+		return nil, "", err
 	}
 	di, err := user.Root.GetData(hash, c.User.Name)
 	if err != nil {
-		return "", err
+		return nil, "", err
 	}
 	if di == nil {
-		return "", errors.New("data doesn't exist")
+		return nil, "", errors.New("data doesn't exist")
 	}
 	keyAES, err := c.DecryptDataKey(di.Key)
 	if err != nil {
-		return "", err
+		return nil, "", err
 	}
 	ctx := context.Background()
-	d, err := db.GetByHash(ctx, hash)
+	d, err := models.GetDataByHashes(ctx, []string{hash})
 	if err != nil {
-		return "", err
+		return nil, "", err
 	}
 	if d == nil {
-		return "", errors.New("data doesn't exist")
+		return nil, "", errors.New("data doesn't exist")
 	}
-	_, out, err := crypto.DecryptData(tpCrypto.HexToBytes(d.Payload), keyAES)
+	_, out, err := crypto.DecryptData(tpCrypto.HexToBytes(d[0].Payload), keyAES)
 	if err != nil {
-		return "", err
+		return nil, "", err
 	}
 
-	return string(out), nil
+	return di, string(out), nil
 }
 
 // ShareData share the data owned by the current user
-func (c *Client) ShareData(hash, username string) error {
-	di, err := c.User.Root.GetData(hash, c.User.Name)
+func (c *Client) ShareData(hash, usernameTo string) error {
+	err := c.Sync()
 	if err != nil {
 		return err
 	}
-	if di == nil {
-		return errors.New("data doesn't exist")
-	}
-	addresses := []string{c.GetAddress()}
-
-	_, user, err := c.GetUser(username)
+	di, data, err := c.GetPatientData(hash)
 	if err != nil {
 		fmt.Println("failed to get user:", err)
 		return err
 	}
-	keyAES, err := c.DecryptDataKey(di.Key)
+	addresses := []string{c.GetAddress()}
+
+	_, userTo, err := c.GetUser(usernameTo)
 	if err != nil {
-		fmt.Println("failed to decrypt file key:", err)
+		fmt.Println("failed to get user:", err)
 		return err
 	}
-
-	info, err := crypto.GenerateSharedDataInfo(di.Name, user.PublicKey, user.Name, tpCrypto.BytesToHex(keyAES), di.Hash, di.Size)
+	dataName := fmt.Sprintf("shared_by_%s_%s", c.Name, di.Name)
+	keyAES := tpCrypto.GenerateRandomAESKey(lib.AESKeySize)
+	info, err := crypto.GenerateDataInfo(dataName, data, userTo.PublicKey, userTo.Name, tpCrypto.BytesToHex(keyAES), di.AccessType, 0)
 	if err != nil {
 		return err
 	}
@@ -255,14 +284,254 @@ func (c *Client) ShareData(hash, username string) error {
 	}}, addresses, addresses)
 }
 
-// GetUser get current user data
-func (c *Client) GetUser(username string) (string, *tpUser.User, error) {
-	for a, u := range c.QueryCache {
-		if u.Name == username {
-			return a, u, nil
+func (c *Client) OpenSharedDataToThirdParty(usernameFrom, usernameTo string, accessType int) error {
+	err := c.Sync()
+	if err != nil {
+		return err
+	}
+	if accessType == 0 || accessType > 2 {
+		return nil
+	}
+	sharedDataList, err := c.ListSharedPatientData(usernameFrom)
+	if err != nil {
+		return err
+	}
+	_, userTo, err := c.GetUser(usernameTo)
+	if err != nil {
+		return err
+	}
+	batches := make([]tpPayload.StoragePayload, 0)
+	for _, sd := range sharedDataList {
+		di, data, err := c.GetSharedPatientData(sd.GetHash(), usernameFrom)
+		if err != nil {
+			return err
+		}
+		// regular access type
+		if accessType == 1 {
+			if di.AccessType != 1 {
+				continue
+			}
+			// critical access type
+		} else if accessType == 2 {
+			if di.AccessType == 0 {
+				continue
+			}
+		}
+		now := time.Now()
+		expiration := now.Add(1 * time.Minute)
+		dataName := fmt.Sprintf("shared_by_%s_%s", c.Name, di.Name)
+		keyAES := tpCrypto.GenerateRandomAESKey(lib.AESKeySize)
+		info, err := crypto.GenerateDataInfo(dataName, data, userTo.PublicKey, userTo.Name, tpCrypto.BytesToHex(keyAES), di.AccessType, expiration.Unix())
+		if err != nil {
+			return err
+		}
+		err = c.User.Root.CreateData(info)
+		if err != nil {
+			return err
+		}
+		batches = append(batches, tpPayload.StoragePayload{
+			Action:   tpPayload.UserCreateData,
+			Name:     c.Name,
+			DataInfo: info,
+		})
+	}
+
+	addresses := []string{c.GetAddress()}
+	return c.SendTransactionAndWaiting(batches, addresses, addresses)
+}
+
+func (c *Client) OpenSharedDataToTrustedParty(usernameTo string) error {
+	err := c.Sync()
+	if err != nil {
+		return err
+	}
+	sharedDataList, err := c.ListPatientData()
+	if err != nil {
+		return err
+	}
+	_, userTo, err := c.GetUser(usernameTo)
+	if err != nil {
+		return err
+	}
+	batches := make([]tpPayload.StoragePayload, 0)
+	for _, sd := range sharedDataList {
+		di, data, err := c.GetPatientData(sd.GetHash())
+		if err != nil {
+			return err
+		}
+
+		dataName := fmt.Sprintf("shared_by_%s_%s", c.Name, di.Name)
+		keyAES := tpCrypto.GenerateRandomAESKey(lib.AESKeySize)
+		info, err := crypto.GenerateDataInfo(dataName, data, userTo.PublicKey, userTo.Name, tpCrypto.BytesToHex(keyAES), di.AccessType, 0)
+		if err != nil {
+			return err
+		}
+		err = c.User.Root.CreateData(info)
+		if err != nil {
+			return err
+		}
+		batches = append(batches, tpPayload.StoragePayload{
+			Action:   tpPayload.UserCreateData,
+			Name:     c.Name,
+			DataInfo: info,
+		})
+	}
+
+	addresses := []string{c.GetAddress()}
+	return c.SendTransactionAndWaiting(batches, addresses, addresses)
+}
+
+func (c *Client) RequestData(requestFrom, usernameFrom, accessTypeStr string) error {
+	err := c.Sync()
+	if err != nil {
+		return err
+	}
+	_, userFrom, err := c.GetUser(usernameFrom)
+	if err != nil {
+		return err
+	}
+	accessType, err := strconv.Atoi(accessTypeStr)
+	if err != nil {
+		return err
+	}
+	if accessType < 0 || accessType > 2 {
+		return errors.New("invalid access type")
+	}
+	nodeMap := make(map[string]storage.INode)
+	for _, n := range userFrom.Root.Repo.INodes {
+		if n.GetAddr() != requestFrom {
+			continue
+		}
+		nodeMap[n.GetHash()] = n
+	}
+
+	var requests []*models.Request
+	for hash, n := range nodeMap {
+		oid := primitive.NewObjectID()
+		requests = append(requests, &models.Request{
+			OID:          &oid,
+			Hash:         hash,
+			Name:         n.GetName(),
+			RequestFrom:  requestFrom,
+			UsernameFrom: usernameFrom,
+			UsernameTo:   c.Name,
+			Status:       models.Unset,
+			AccessType:   accessType,
+		})
+	}
+	ctx := context.Background()
+	if len(requests) == 0 {
+		return nil
+	}
+	_, err = models.UpsertRequests(ctx, requests)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c *Client) ListRequests() ([]*models.Request, error) {
+	ctx := context.Background()
+	reqs, err := models.GetRequestsByRequestFrom(ctx, []string{c.Name})
+	if err != nil {
+		return nil, err
+	}
+	var filtered []*models.Request
+	for _, r := range reqs {
+		if r.Status == 1 || r.Status == 2 {
+			continue
+		}
+		filtered = append(filtered, r)
+	}
+	return filtered, nil
+}
+
+func (c *Client) ProcessRequest(oidStr string, accept bool) error {
+	err := c.Sync()
+	if err != nil {
+		return err
+	}
+	oid, err := primitive.ObjectIDFromHex(oidStr)
+	if err != nil {
+		return err
+	}
+	ctx := context.Background()
+	req, err := models.GetRequestByOID(ctx, &oid)
+	if err != nil {
+		return err
+	}
+	if accept {
+		req.Status = 1
+
+		if req.UsernameFrom != c.Name {
+			err := c.OpenSharedDataToThirdParty(req.UsernameFrom, req.UsernameTo, req.AccessType)
+			if err != nil {
+				return err
+			}
+		} else {
+			err := c.OpenSharedDataToTrustedParty(req.UsernameTo)
+			if err != nil {
+				return err
+			}
+		}
+
+	} else {
+		req.Status = 2
+	}
+	_, err = models.UpsertRequests(ctx, []*models.Request{req})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c *Client) BatchUpload(path string) error {
+	err := c.Sync()
+	if err != nil {
+		return err
+	}
+	records, err := readCsvFile(path)
+	if err != nil {
+		return err
+	}
+	if len(records) < 2 {
+		return errors.New("no data in csv")
+	}
+	for _, row := range records[1:] {
+		if len(row) != 4 {
+			return errors.New("csv file is invalid")
+		}
+		if row[0] == "" || row[1] == "" || row[2] == "" || row[3] == "" {
+			return errors.New("csv file is invalid")
+		}
+		accessType, err := strconv.Atoi(row[3])
+		if err != nil {
+			return errors.New(fmt.Sprintf("csv file is invalid: %s", err))
+		}
+		if accessType < 0 || accessType > 2 {
+			return errors.New(fmt.Sprintf("csv file is invalid"))
+		}
+
+		di, err := c.CreatePatientData(row[0], row[1], uint(accessType))
+		if err != nil {
+			return err
+		}
+		err = c.ShareData(di.Hash, row[2])
+		if err != nil {
+			return err
 		}
 	}
-	err := c.ListUsers()
+
+	return nil
+}
+
+// GetUser get current user data
+func (c *Client) GetUser(username string) (string, *tpUser.User, error) {
+	err := c.Sync()
+	if err != nil {
+		return "", nil, err
+	}
+	err = c.ListUsers()
 	if err != nil {
 		return "", nil, errors.New("failed to get user")
 	}
@@ -276,10 +545,10 @@ func (c *Client) GetUser(username string) (string, *tpUser.User, error) {
 
 // ListUsers get the query cache for list shared files.
 func (c *Client) ListUsers() error {
-	for k := range c.QueryCache {
-		delete(c.QueryCache, k)
+	err := c.Sync()
+	if err != nil {
+		return err
 	}
-
 	limit := 10000
 	users, err := lib.ListUsers(c.lastQueryEnd, uint(limit))
 	if err != nil {
@@ -302,6 +571,23 @@ func (c *Client) ListUsers() error {
 	return nil
 }
 
+func (c *Client) RemovedExpiredData() error {
+	ctx := context.Background()
+	now := time.Now().Unix()
+	datas, err := models.GetDataByExpiration(ctx, now)
+	if err != nil {
+		return err
+	}
+	if len(datas) == 0 {
+		return nil
+	}
+	var oids []*primitive.ObjectID
+	for _, d := range datas {
+		oids = append(oids, d.OID)
+	}
+	return models.DeleteDatasByOid(oids)
+}
+
 // check user whether in the query cache.
 // If exists, it will return directly.
 // Else it will get user's data from blockchain.
@@ -319,4 +605,20 @@ func (c *Client) checkUser(addr string) (*tpUser.User, error) {
 		c.QueryCache[addr] = u
 	}
 	return u, nil
+}
+
+func readCsvFile(filePath string) ([][]string, error) {
+	f, err := os.Open(filePath)
+	if err != nil {
+		return nil, errors.New(fmt.Sprintf("Unable to read input file %s %s", filePath, err))
+	}
+	defer f.Close()
+
+	csvReader := csv.NewReader(f)
+	records, err := csvReader.ReadAll()
+	if err != nil {
+		return nil, errors.New(fmt.Sprintf("Unable to parse file as CSV for %s %s", filePath, err))
+	}
+
+	return records, nil
 }

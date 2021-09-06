@@ -31,7 +31,7 @@ type StorageState struct {
 }
 
 // Creates new storage state struct
-func NewSeaStorageState(context *processor.Context) *StorageState {
+func NewStorageState(context *processor.Context) *StorageState {
 	return &StorageState{
 		context:    context,
 		userCache:  make(map[string][]byte),

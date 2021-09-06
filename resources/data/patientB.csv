@@ -1,0 +1,4 @@
+data_name,data,trusted_party,access_type
+Name,Jack,doctorA,1
+Surname,Johnson,doctorA,0
+Blood type,negative,doctorA,2
