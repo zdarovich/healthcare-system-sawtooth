@@ -32,8 +32,30 @@ All components are deloyed in the Docker containers
 - `ls-users`: List all users on the blockchain.
 - `ls-shared <username>`: List all shared data by user.
 - `get-shared <hash> <username>`: Get shared data by hash and username
+- `request-as-third-party <request_from> <data_of_user> <emergency_condition>`: Request data of patient from trusted party as third party
+- `request-as-trusted-party`: Request data of patient as trusted party
+- `list-requests`: List of data requests received from users
+- `process-request <OID> <true/false>`: List of data requests received from users
+- `batch-upload <path_to_csv_file>`: Upload patient's data using csv file format
 - `exit`: Exit command prompt.
 
+### Batch file csv format description
+Columns
+- `data_name`: The name of the data stored stored in the system
+- `data`: The text string of stored data
+- `trusted_party`: Trusted party. Identity with whom the data is shared.
+- `access_type`: Emergency condition when data is allowed to be shared to third parties
+    0 - Unset. Data cannot be shared to third parties.
+    1 - Regular. Data can be shared in regular emergency case.
+    2 - Critical. Data can be shared in critical emergency cases. It also includes regular cases.
+
+Example
+```csv
+data_name,data,trusted_party,access_type
+Name,John,doctorA,1
+Surname,Sally,doctorA,0
+Blood type,positive,doctorA,2
+```
 
 ## Run and test healthcare system
 ### Run benchmark tests
