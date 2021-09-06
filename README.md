@@ -78,10 +78,10 @@ docker run -t -i --rm --network docker_default docker_healthcare-system-client-a
 
 
 ## Example.
-'patientA' uploads multiple data to the system using csv data upload.
-Data is shared with trusted party 'doctorA'.
-'thirdPartyA' requests access for data of 'patientA' from 'doctorA'
-'doctorA' accepts request. Data of 'patientA' is shared by 'doctorA' to 'thirdPartyA' for 1 minute
+- 'patientA' uploads multiple data to the system using csv data upload.
+- Data is shared with trusted party 'doctorA'.
+- 'thirdPartyA' requests access for data of 'patientA' from 'doctorA'
+- 'doctorA' accepts request. Data of 'patientA' is shared by 'doctorA' to 'thirdPartyA' for 1 minute
 
 1. Start and register 'doctorA' identity
 ```
