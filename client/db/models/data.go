@@ -64,7 +64,7 @@ func GetDataByExpiration(ctx context.Context, now int64) ([]*Data, error) {
 	if err != nil {
 		return nil, err
 	}
-	filter := bson.M{"$and": []bson.M{bson.M{"expiration": bson.M{"$ne": 0}}, bson.M{"&lte": now}}}
+	filter := bson.M{"$and": []bson.M{{"expiration": bson.M{"$ne": 0}}, {"expiration": bson.M{"$lte": now}}}}
 
 	var pms []*Data
 	c, err := col.Find(ctx, filter)

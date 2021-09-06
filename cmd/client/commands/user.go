@@ -62,10 +62,6 @@ communicating with the transaction processor.`,
 				fmt.Println(err)
 			}
 		}
-		err = cli.RemovedExpiredData()
-		if err != nil {
-			fmt.Println(err)
-		}
 		defer cli.Close()
 		for {
 			prompt := promptui.Prompt{

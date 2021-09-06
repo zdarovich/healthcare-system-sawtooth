@@ -565,3 +565,13 @@ services:
     expose:
       - 4004
     stop_signal: SIGKILL
+
+  healthcare-system-expiration-cron:
+    container_name: healthcare-system-expiration-cron
+    build:
+      dockerfile: docker/cron/Dockerfile
+      context: ../
+    restart: always
+    depends_on:
+      - mongodb
+    entrypoint: /app/main

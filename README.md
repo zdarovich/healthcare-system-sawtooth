@@ -36,26 +36,6 @@ All components are deloyed in the Docker containers
 
 
 ## Run and test healthcare system
-### Start system
-```
-docker-compose -f docker/sawtooth-default.yaml up -d
-```
-### Run command client help
-```
-docker run -t -i --rm --network docker_default docker_healthcare-system-client-admin /app/main user -h
-```
-### Run 'admin' identity and register it
-```
-docker run -t -i --rm --network docker_default docker_healthcare-system-client-admin /app/main user -n admin -u rest-api-0:8008 -V tcp://validator-0:4004 -k /app/resources/keys/admin.priv
-```
-### Run 'patientA' identity and register it
-```
-docker run -t -i --rm --network docker_default docker_healthcare-system-client-patient-a /app/main user -n patientA -u rest-api-0:8008 -V tcp://validator-0:4004 -k /app/resources/keys/patientA.priv
-```
-### Run 'patientB' identity and register it
-```
-docker run -t -i --rm --network docker_default docker_healthcare-system-client-patient-b /app/main user -n patientB -u rest-api-0:8008 -V tcp://validator-0:4004 -k /app/resources/keys/patientB.priv
-```
 ### Run benchmark tests
 ```
 docker run -t -i --rm --network docker_default docker_healthcare-system-client-admin go test -v test/*_test.go
@@ -75,18 +55,31 @@ docker run -t -i --rm --network docker_default docker_healthcare-system-client-a
 - `Rate/sec.`: Per-second rate based on cumulative time and sample count.
 
 
-## Example. Doctor
+## Example.
+'patientA' uploads multiple data to the system using csv data upload.
+Data is shared with trusted party 'doctorA'.
+'thirdPartyA' requests access for data of 'patientA' from 'doctorA'
+'doctorA' accepts request. Data of 'patientA' is shared by 'doctorA' to 'thirdPartyA' for 1 minute
+
 1. Start and register 'doctorA' identity
 ```
 docker run -t -i --rm --network docker_default docker_healthcare-system-client-doctor-a /app/main user -n doctorA -u rest-api-0:8008 -V tcp://validator-0:4004 -k /app/resources/keys/doctorA.priv
 ```
+
 1. Start and register 'patientA' identity
 ```
-docker run -t -i --rm --network docker_default docker_healthcare-system-client-patient-a /app/main user -n patientA -u rest-api-0:8008 -V tcp://validator-0:4004 -k /app/resources/keys/patientA.priv
+docker run -t -i --rm --network docker_default -v "$(pwd)"/resources/data:/app/resources/data docker_healthcare-system-client-patient-a /app/main user -n patientA -u rest-api-0:8008 -V tcp://validator-0:4004 -k /app/resources/keys/patientA.priv
 ```
-2. Batch upload 'patientA' data from csv
+
+2. Batch upload 'patientA' data from csv file '/resources/data/patientA.csv'
+Commands
+```
+batch-upload <path_to_csv_file>
+```
+Example
 ```
 batch-upload /app/resources/data/patientA.csv
+exit
 ```
 
 4. Start and register 'thirdPartyA' identity
@@ -94,6 +87,83 @@ batch-upload /app/resources/data/patientA.csv
 docker run -t -i --rm --network docker_default docker_healthcare-system-client-thirdparty-a /app/main user -n thirdPartyA -u rest-api-0:8008 -V tcp://validator-0:4004 -k /app/resources/keys/thirdPartyA.priv
 ```
 
+5. Request 'patientA' data from 'doctorA' as 'thirdPartyA' identity with 'regular' access type
+Commands
+```
+request-as-third-party <request_from> <username_to_take_data_from> <emergency_case>
+```
+Example
+```
+request-as-third-party doctorA patientA 1
+exit
+```
+
+6. Start 'doctorA' identity
+```
+docker run -t -i --rm --network docker_default docker_healthcare-system-client-doctor-a /app/main user -n doctorA -u rest-api-0:8008 -V tcp://validator-0:4004 -k /app/resources/keys/doctorA.priv
+```
+7. List data requests for 'doctorA' identity
+```
+list-requests
+```
+Example response from 'list-requests' command
+```json
+{
+        "OID": "61360d314de12856ad923de3",
+        "hash": "88fbd28a1b80eb5966120f1f68fd94bbe58d84adfe510787b1c6f82a61a1b9177da4d137139cf244ec39237995e8044e65927fd808ae2a2539d919fa9f620956",
+        "name": "",
+        "request_from": "doctorA",
+        "username_from": "patientA",
+        "username_to": "thirdPartyA",
+        "status": 0,
+        "access_type": 1
+}
+```
+8. Accept request by 'doctorA' identity to provide data access to 'thirdPartyA' identity. Provide 'OID' from 'list-requests' response. Provide 'true' or 'false' to accept or reject request.
+Command
+```
+process-request <OID> <true/false>
+```
+Example
+```
+process-request 61360d314de12856ad923de3 true
+exit
+```
+
+9. Start 'thirdPartyA' identity
+```
+docker run -t -i --rm --network docker_default docker_healthcare-system-client-thirdparty-a /app/main user -n thirdPartyA -u rest-api-0:8008 -V tcp://validator-0:4004 -k /app/resources/keys/thirdPartyA.priv
+```
+
+10. List shared files from 'doctorA'
+Commands
+```
+ls-shared <username>
+```
+Example
+```
+ls-shared doctorA
+```
+Example response from 'ls-shared' command
+```json
+{
+        "Name": "shared_by_doctorA_shared_by_patientA_Name",
+        "Hash": "52f220d78ca9cf0da98579f677eb95ef060ca753628faaae325c9e309307e0c824d8e636a05c681b0f29351bf52a5d0da3f217d07a6e9b4f6448d6002f61d940",
+        "Size": 4,
+        "KeyIndex": "ebec5793147e9663cb4c3ecf3fa65f07909cf8eb3a197a8f949b135b786422274c32e2bebd3b83b384e83af1d133540868aac380047664c9810ad7b8fa475148",
+        "Addr": "thirdPartyA",
+        "AccessType": 0
+}
+```
+11. Access shared data of 'patientA' from 'doctorA' as 'thirdPartyA' identity
+Command
+```
+get-shared <hash> <username_who_shared_data>
+```
+Example
+```
+get-shared 52f220d78ca9cf0da98579f677eb95ef060ca753628faaae325c9e309307e0c824d8e636a05c681b0f29351bf52a5d0da3f217d07a6e9b4f6448d6002f61d940 doctorA
+```
 
 ## Example. How to access shared data. Step by step.
 1. Run help from prompt to get information about possible commands

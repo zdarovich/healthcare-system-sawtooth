@@ -163,6 +163,16 @@ services:
       - validator-0
     entrypoint: /app/main -vv -C tcp://validator-0:4004
 
+  healthcare-system-expiration-cron:
+    container_name: healthcare-system-expiration-cron
+    build:
+      dockerfile: docker/cron/Dockerfile
+      context: ../
+    restart: always
+    depends_on:
+      - mongodb
+    entrypoint: /app/main
+
 volumes:
   mongodb_config:
   mongodb_data:
