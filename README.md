@@ -88,12 +88,12 @@ docker run -t -i --rm --network docker_default docker_healthcare-system-client-a
 docker run -t -i --rm --network docker_default docker_healthcare-system-client-doctor-a /app/main user -n doctorA -u rest-api-0:8008 -V tcp://validator-0:4004 -k /app/resources/keys/doctorA.priv
 ```
 
-1. Start and register 'patientA' identity
+2. Start and register 'patientA' identity
 ```
 docker run -t -i --rm --network docker_default -v "$(pwd)"/resources/data:/app/resources/data docker_healthcare-system-client-patient-a /app/main user -n patientA -u rest-api-0:8008 -V tcp://validator-0:4004 -k /app/resources/keys/patientA.priv
 ```
 
-2. Batch upload 'patientA' data from csv file '/resources/data/patientA.csv'
+3. Batch upload 'patientA' data from csv file '/resources/data/patientA.csv'
 Commands
 ```
 batch-upload <path_to_csv_file>
@@ -124,6 +124,7 @@ exit
 ```
 docker run -t -i --rm --network docker_default docker_healthcare-system-client-doctor-a /app/main user -n doctorA -u rest-api-0:8008 -V tcp://validator-0:4004 -k /app/resources/keys/doctorA.priv
 ```
+
 7. List data requests for 'doctorA' identity
 ```
 list-requests
@@ -141,6 +142,7 @@ Example response from 'list-requests' command
         "access_type": 1
 }
 ```
+
 8. Accept request by 'doctorA' identity to provide data access to 'thirdPartyA' identity. Provide 'OID' from 'list-requests' response. Provide 'true' or 'false' to accept or reject request.
 Command
 ```
@@ -177,6 +179,7 @@ Example response from 'ls-shared' command
         "AccessType": 0
 }
 ```
+
 11. Access shared data of 'patientA' from 'doctorA' as 'thirdPartyA' identity
 Command
 ```
