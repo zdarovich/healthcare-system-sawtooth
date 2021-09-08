@@ -258,8 +258,11 @@ communicating with the transaction processor.`,
 					fmt.Println(errInvalidPath)
 				} else {
 
-					err := cli.BatchUpload(commands[1])
+					errs, err := cli.BatchUpload(commands[1])
 					if err != nil {
+						fmt.Println(err)
+					}
+					for _, err := range errs {
 						fmt.Println(err)
 					}
 				}

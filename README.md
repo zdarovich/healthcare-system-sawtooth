@@ -42,8 +42,7 @@ All components are deloyed in the Docker containers
 ### Batch file csv format description
 Columns
 - `data_name`: The name of the data stored stored in the system
-- `data`: The text string of stored data
-- `trusted_party`: Trusted party. Identity with whom the data is shared.
+- `trusted_party`: Trusted party. Identity with whom the data is shared. Can be an array of trusted party usernames separated by space. Example: doctorA doctorB
 - `access_type`: Emergency condition when data is allowed to be shared to third parties
     0 - Unset. Data cannot be shared to third parties.
     1 - Regular. Data can be shared in regular emergency case.
@@ -51,10 +50,9 @@ Columns
 
 Example
 ```csv
-data_name,data,trusted_party,access_type
-Name,John,doctorA,1
-Surname,Sally,doctorA,0
-Blood type,positive,doctorA,2
+name,surname,Blood type,trusted_party,access_type
+John,Sally,positive,doctorA,1
+John,Sally,positive,doctorA doctorB,1
 ```
 
 ## Run and test healthcare system
@@ -85,12 +83,13 @@ docker run -t -i --rm --network docker_default docker_healthcare-system-client-a
 
 1. Start and register 'doctorA' identity
 ```
-docker run -t -i --rm --network docker_default docker_healthcare-system-client-doctor-a /app/main user -n doctorA -u rest-api-0:8008 -V tcp://validator-0:4004 -k /app/resources/keys/doctorA.priv
+docker run -t -i --rm --network docker_default -v "$(pwd)"/resources/data:/resources/data docker_healthcare-system-client-doctor-a /app/main user -n doctorA -u rest-api-0:8008 -V tcp://validator-0:4004 -k /app/resources/keys/doctorA.priv
+exit
 ```
 
 2. Start and register 'patientA' identity
 ```
-docker run -t -i --rm --network docker_default -v "$(pwd)"/resources/data:/app/resources/data docker_healthcare-system-client-patient-a /app/main user -n patientA -u rest-api-0:8008 -V tcp://validator-0:4004 -k /app/resources/keys/patientA.priv
+docker run -t -i --rm --network docker_default -v "$(pwd)"/resources/data:/resources/data docker_healthcare-system-client-patient-a /app/main user -n patientA -u rest-api-0:8008 -V tcp://validator-0:4004 -k /app/resources/keys/patientA.priv
 ```
 
 3. Batch upload 'patientA' data from csv file '/resources/data/patientA.csv'
@@ -100,13 +99,13 @@ batch-upload <path_to_csv_file>
 ```
 Example
 ```
-batch-upload /app/resources/data/patientA.csv
+batch-upload /resources/data/patientA.csv
 exit
 ```
 
 4. Start and register 'thirdPartyA' identity
 ```
-docker run -t -i --rm --network docker_default docker_healthcare-system-client-thirdparty-a /app/main user -n thirdPartyA -u rest-api-0:8008 -V tcp://validator-0:4004 -k /app/resources/keys/thirdPartyA.priv
+docker run -t -i --rm --network docker_default -v "$(pwd)"/resources/data:/resources/data docker_healthcare-system-client-thirdparty-a /app/main user -n thirdPartyA -u rest-api-0:8008 -V tcp://validator-0:4004 -k /app/resources/keys/thirdPartyA.priv
 ```
 
 5. Request 'patientA' data from 'doctorA' as 'thirdPartyA' identity with 'regular' access type
@@ -122,7 +121,7 @@ exit
 
 6. Start 'doctorA' identity
 ```
-docker run -t -i --rm --network docker_default docker_healthcare-system-client-doctor-a /app/main user -n doctorA -u rest-api-0:8008 -V tcp://validator-0:4004 -k /app/resources/keys/doctorA.priv
+docker run -t -i --rm --network docker_default -v "$(pwd)"/resources/data:/resources/data docker_healthcare-system-client-doctor-a /app/main user -n doctorA -u rest-api-0:8008 -V tcp://validator-0:4004 -k /app/resources/keys/doctorA.priv
 ```
 
 7. List data requests for 'doctorA' identity
@@ -156,7 +155,7 @@ exit
 
 9. Start 'thirdPartyA' identity
 ```
-docker run -t -i --rm --network docker_default docker_healthcare-system-client-thirdparty-a /app/main user -n thirdPartyA -u rest-api-0:8008 -V tcp://validator-0:4004 -k /app/resources/keys/thirdPartyA.priv
+docker run -t -i --rm --network docker_default -v "$(pwd)"/resources/data:/resources/data docker_healthcare-system-client-thirdparty-a /app/main user -n thirdPartyA -u rest-api-0:8008 -V tcp://validator-0:4004 -k /app/resources/keys/thirdPartyA.priv
 ```
 
 10. List shared files from 'doctorA'
@@ -190,24 +189,42 @@ Example
 get-shared 52f220d78ca9cf0da98579f677eb95ef060ca753628faaae325c9e309307e0c824d8e636a05c681b0f29351bf52a5d0da3f217d07a6e9b4f6448d6002f61d940 doctorA
 ```
 
+## Example. How to add new data sample?
+- Place data sample csv file into 'resources/data' directory
+Example:
+```
+resources/data/example_a.csv
+```
+- Run identity of the user, whom this data belongs to. Run batch-upload command with path starting as '/app/resources/data/<file_name>'
+Command
+```
+docker run -t -i --rm --network docker_default -v "$(pwd)"/resources/data:/resources/data docker_healthcare-system-client-patient-a /app/main user -n <identity_username> -u rest-api-0:8008 -V tcp://validator-0:4004 -k /app/resources/keys/<identity_key>.priv
+batch-upload /resources/data/<file_name>
+```
+Example
+```
+docker run -t -i --rm --network docker_default -v "$(pwd)"/resources/data:/resources/data docker_healthcare-system-client-patient-a /app/main user -n patientA -u rest-api-0:8008 -V tcp://validator-0:4004 -k /app/resources/keys/patientA.priv
+batch-upload /resources/data/example_a.csv
+```
+
 ## Example. How to access shared data. Step by step.
 1. Run help from prompt to get information about possible commands
 ```
-docker run -t -i --rm --network docker_default docker_healthcare-system-client-admin /app/main user -h
+docker run -t -i --rm --network docker_default -v "$(pwd)"/resources/data:/resources/data docker_healthcare-system-client-admin /app/main user -h
 ```
 2. Start and register 'admin' identity in the first place because Sawtooth blockchain requires admin user identity
 ```
-docker run -t -i --rm --network docker_default docker_healthcare-system-client-admin /app/main user -n admin -u rest-api-0:8008 -V tcp://validator-0:4004 -k /app/resources/keys/admin.priv
+docker run -t -i --rm --network docker_default -v "$(pwd)"/resources/data:/resources/data docker_healthcare-system-client-admin /app/main user -n admin -u rest-api-0:8008 -V tcp://validator-0:4004 -k /app/resources/keys/admin.priv
 ```
 3. Type in 'exit' in the prompt. To force exit use Ctrl + C
 4. Start and register 'patientA' identity
 ```
-docker run -t -i --rm --network docker_default docker_healthcare-system-client-patient-a /app/main user -n patientA -u rest-api-0:8008 -V tcp://validator-0:4004 -k /app/resources/keys/patientA.priv
+docker run -t -i --rm --network docker_default -v "$(pwd)"/resources/data:/resources/data docker_healthcare-system-client-patient-a /app/main user -n patientA -u rest-api-0:8008 -V tcp://validator-0:4004 -k /app/resources/keys/patientA.priv
 ```
 5. Type in 'exit' in the prompt. To force exit use Ctrl + C
 6. Start and register 'patientB' identity
 ```
-docker run -t -i --rm --network docker_default docker_healthcare-system-client-patient-b /app/main user -n patientB -u rest-api-0:8008 -V tcp://validator-0:4004 -k /app/resources/keys/patientB.priv
+docker run -t -i --rm --network docker_default -v "$(pwd)"/resources/data:/resources/data docker_healthcare-system-client-patient-b /app/main user -n patientB -u rest-api-0:8008 -V tcp://validator-0:4004 -k /app/resources/keys/patientB.priv
 ```
 7. Write command to create data on the blockchain. First argument is the name of the data. Second argument is the data itself. Data can be string of any length and format.
 ```
@@ -230,7 +247,7 @@ share fsdfsfsdfsd a
 11. Choose exit in the prompt. To force exit use Ctrl + C
 12. Start 'patientA' identity
 ```
-docker run -t -i --rm --network docker_default docker_healthcare-system-client-patient-a /app/main user -n patientA -u rest-api-0:8008 -V tcp://validator-0:4004 -k /app/resources/keys/patientA.priv
+docker run -t -i --rm --network docker_default -v "$(pwd)"/resources/data:/resources/data docker_healthcare-system-client-patient-a /app/main user -n patientA -u rest-api-0:8008 -V tcp://validator-0:4004 -k /app/resources/keys/patientA.priv
 ```
 13. List shared data by username. First argument accepts username.
 ```
@@ -252,16 +269,6 @@ docker rmi $(docker images | grep 'hyperledger' | awk '{print $3}') --force
 docker rmi $(docker images | grep 'docker_' | awk '{print $3}') --force
 docker volume rm $(docker volume ls | awk '{print $2}')
 docker volume rm docker_poet-shared
-```
-
-```
-docker ps | grep 'hyperledger/sawtooth-validator:1.1' | awk '{print $1}' | xargs docker stop
-docker ps | grep 'docker_healthcare-system-client-' | awk '{print $1}' | xargs docker stop
-docker ps | grep 'docker_healthcare-system-tp' | awk '{print $1}' | xargs docker stop
-docker container rm $(docker ps --filter "status=exited" | grep 'hyperledger/sawtooth-validator:1.1' | awk '{print $1}')
-docker container rm $(docker ps --filter "status=exited" | grep 'docker_healthcare-system-tp' | awk '{print $1}')
-docker rmi $(docker images | grep 'docker_healthcare-system-tp' | awk '{print $3}') --force
-docker rmi $(docker images | grep 'docker_healthcare-system-client-' | awk '{print $3}') --force
 ```
 
 ### View docker logs

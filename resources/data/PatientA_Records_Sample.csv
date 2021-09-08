@@ -1,0 +1,6 @@
+Name,Surname,Patient_DOB,Patient_Gender,Blood type,Visit_Date,Symptoms,Diagnosis,Severity,Clinic_ID,Test_Name,Date_Collected,Result_Name,Result_Description,Numeric_Result,Numeric_Result_Unit,Pharmacy_Name,Dispense_Date,Drug_Name,Drug_NDC,Dispense_Qty,Dose,Unit,Days_of_Supply,trusted_party,access_type
+Lacy,Mosbei,1990.4.5,Male,O Positive,2020.01.08,lightheadedness,Tention,critic,Sidney Hillman Health Center,Skin cancer screening,2020.01.10,Skin cancer screening,no abnormal skin or mole present,,vvkg,dfgght,dferg,wser,rfegtg,30,3,mg,20,doctorA,1
+,,,,,,,,,,,,,,,,,,,,,,,,doctorA,0
+,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,doctorA,2

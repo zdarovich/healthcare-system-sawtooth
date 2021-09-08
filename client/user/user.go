@@ -11,6 +11,7 @@ import (
 	"healthcare-system-sawtooth/tp/storage"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -485,44 +486,82 @@ func (c *Client) ProcessRequest(oidStr string, accept bool) error {
 	return nil
 }
 
-func (c *Client) BatchUpload(path string) error {
+func (c *Client) BatchUpload(path string) ([]error, error) {
 	err := c.Sync()
 	if err != nil {
-		return err
+		return nil, err
 	}
 	records, err := readCsvFile(path)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if len(records) < 2 {
-		return errors.New("no data in csv")
-	}
-	for _, row := range records[1:] {
-		if len(row) != 4 {
-			return errors.New("csv file is invalid")
-		}
-		if row[0] == "" || row[1] == "" || row[2] == "" || row[3] == "" {
-			return errors.New("csv file is invalid")
-		}
-		accessType, err := strconv.Atoi(row[3])
-		if err != nil {
-			return errors.New(fmt.Sprintf("csv file is invalid: %s", err))
-		}
-		if accessType < 0 || accessType > 2 {
-			return errors.New(fmt.Sprintf("csv file is invalid"))
-		}
-
-		di, err := c.CreatePatientData(row[0], row[1], uint(accessType))
-		if err != nil {
-			return err
-		}
-		err = c.ShareData(di.Hash, row[2])
-		if err != nil {
-			return err
-		}
+		return nil, errors.New("no data in csv")
 	}
 
-	return nil
+	var trustedPartyColIdx, accessColIdx *int
+	for id, colName := range records[0] {
+		copiedId := id
+		if colName == "trusted_party" {
+			trustedPartyColIdx = &copiedId
+		}
+		if colName == "access_type" {
+			accessColIdx = &copiedId
+		}
+		if trustedPartyColIdx != nil && accessColIdx != nil {
+			break
+		}
+	}
+	columnLen := len(records[0])
+	var errs []error
+	for id, row := range records[1:] {
+		if len(row) != columnLen {
+			errs = append(errs, errors.New(fmt.Sprintf("csv row %d is invalid: column name's length is not equal to row's column length", id+2)))
+			continue
+		}
+		var accessType int
+		if accessColIdx != nil {
+			accessType, err = strconv.Atoi(row[*accessColIdx])
+			if err != nil {
+				errs = append(errs, errors.New(fmt.Sprintf("csv row %d col %d access type is wrong format", id+2, *accessColIdx+1)))
+				continue
+			}
+			if accessType < 0 || accessType > 2 {
+				errs = append(errs, errors.New(fmt.Sprintf("csv row %d col %d access type must be eqaul or greater than 0 and lesser than 3", id+2, *accessColIdx+1)))
+				continue
+			}
+		}
+		var trustedParties []string
+		if trustedPartyColIdx != nil {
+			trustedParties = strings.Split(row[*trustedPartyColIdx], " ")
+		}
+		for idcol, col := range row {
+			columnName := records[0][idcol]
+			if columnName == "access_type" || columnName == "trusted_party" {
+				continue
+			}
+			if len(col) == 0 {
+				errs = append(errs, errors.New(fmt.Sprintf("csv row %d col %d is empty", id+2, idcol+1)))
+				continue
+			}
+
+			di, err := c.CreatePatientData(columnName, col, uint(accessType))
+			if err != nil {
+				errs = append(errs, errors.New(fmt.Sprintf("csv row %d col %d: failed to save data: %s", id+2, idcol+1, err)))
+				continue
+			}
+			for _, tp := range trustedParties {
+				err = c.ShareData(di.Hash, tp)
+				if err != nil {
+					errs = append(errs, errors.New(fmt.Sprintf("csv row %d col %d: failed to share with trusted party %s: %s", id+2, idcol+1, tp, err)))
+					continue
+				}
+				fmt.Printf("sharing data with %s \n", tp)
+			}
+		}
+	}
+
+	return errs, nil
 }
 
 // GetUser get current user data
