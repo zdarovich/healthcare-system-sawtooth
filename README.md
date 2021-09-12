@@ -91,22 +91,26 @@ docker run -t -i --rm --network docker_default docker_healthcare-system-client-a
 - 'doctorA' accepts request. Data of 'patientA' is shared by 'doctorA' to 'thirdPartyA' for 1 minute
 
 1. Start and register 'doctorA' identity
+
 ```
 docker run -t -i --rm --network docker_default -v "$(pwd)"/resources/data:/resources/data docker_healthcare-system-client-doctor-a /app/main user -n doctorA -u rest-api-0:8008 -V tcp://validator-0:4004 -k /app/resources/keys/doctorA.priv
 exit
 ```
 1.1. Start and register 'doctorB' identity
+
 ```
 docker run -t -i --rm --network docker_default -v "$(pwd)"/resources/data:/resources/data docker_healthcare-system-client-doctor-b /app/main user -n doctorB -u rest-api-0:8008 -V tcp://validator-0:4004 -k /app/resources/keys/doctorB.priv
 exit
 ```
 
 2. Start and register 'patientA' identity
+
 ```
 docker run -t -i --rm --network docker_default -v "$(pwd)"/resources/data:/resources/data docker_healthcare-system-client-patient-a /app/main user -n patientA -u rest-api-0:8008 -V tcp://validator-0:4004 -k /app/resources/keys/patientA.priv
 ```
 
 3. Batch upload 'patientA' data from csv file '/resources/data/patientA.csv'
+
 Commands
 ```
 batch-upload <path_to_csv_file>
@@ -118,11 +122,13 @@ exit
 ```
 
 4. Start and register 'thirdPartyA' identity
+
 ```
 docker run -t -i --rm --network docker_default -v "$(pwd)"/resources/data:/resources/data docker_healthcare-system-client-thirdparty-a /app/main user -n thirdPartyA -u rest-api-0:8008 -V tcp://validator-0:4004 -k /app/resources/keys/thirdPartyA.priv
 ```
 
 5. Request 'patientA' data from 'doctorA' as 'thirdPartyA' identity with 'regular' access type
+
 Commands
 ```
 request-as-third-party <request_from> <username_to_take_data_from> <emergency_case>
@@ -134,11 +140,13 @@ exit
 ```
 
 6. Start 'doctorA' identity
+
 ```
 docker run -t -i --rm --network docker_default -v "$(pwd)"/resources/data:/resources/data docker_healthcare-system-client-doctor-a /app/main user -n doctorA -u rest-api-0:8008 -V tcp://validator-0:4004 -k /app/resources/keys/doctorA.priv
 ```
 
 7. List data requests for 'doctorA' identity
+
 ```
 list-requests
 ```
@@ -157,6 +165,7 @@ Example response from 'list-requests' command
 ```
 
 8. Accept request by 'doctorA' identity to provide data access to 'thirdPartyA' identity. Provide 'OID' from 'list-requests' response. Provide 'true' or 'false' to accept or reject request.
+
 Command
 ```
 process-request <OID> <true/false>
@@ -168,11 +177,13 @@ exit
 ```
 
 9. Start 'thirdPartyA' identity
+
 ```
 docker run -t -i --rm --network docker_default -v "$(pwd)"/resources/data:/resources/data docker_healthcare-system-client-thirdparty-a /app/main user -n thirdPartyA -u rest-api-0:8008 -V tcp://validator-0:4004 -k /app/resources/keys/thirdPartyA.priv
 ```
 
 10. List shared files from 'doctorA'
+
 Commands
 ```
 ls-shared <username>
@@ -194,6 +205,7 @@ Example response from 'ls-shared' command
 ```
 
 11. Access shared data of 'patientA' from 'doctorA' as 'thirdPartyA' identity
+
 Command
 ```
 get-shared <hash> <username_who_shared_data>
@@ -205,11 +217,13 @@ get-shared 52f220d78ca9cf0da98579f677eb95ef060ca753628faaae325c9e309307e0c824d8e
 
 ## Example. How to add new data sample?
 - Place data sample csv file into 'resources/data' directory
+
 Example:
 ```
 resources/data/example_a.csv
 ```
 - Run identity of the user, whom this data belongs to. Run batch-upload command with path starting as '/app/resources/data/<file_name>'
+
 Command
 ```
 docker run -t -i --rm --network docker_default -v "$(pwd)"/resources/data:/resources/data docker_healthcare-system-client-patient-a /app/main user -n <identity_username> -u rest-api-0:8008 -V tcp://validator-0:4004 -k /app/resources/keys/<identity_key>.priv
