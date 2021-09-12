@@ -294,7 +294,7 @@ docker ps | grep 'docker_' | awk '{print $1}' | xargs docker stop
 docker container rm $(docker ps --filter "status=exited" | grep 'hyperledger' | awk '{print $1}')
 docker container rm $(docker ps --filter "status=exited" | grep 'docker_' | awk '{print $1}')
 docker rmi $(docker images | grep 'hyperledger' | awk '{print $3}') --force
-docker rmi $(docker images | grep 'docker_' | awk '{print $3}') --force
+docker rmi $(docker images | grep 'docker_healthcare-system-client-' | awk '{print $3}') --force
 docker volume rm $(docker volume ls | awk '{print $2}')
 docker volume rm docker_poet-shared
 ```
