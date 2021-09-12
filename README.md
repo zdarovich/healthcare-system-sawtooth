@@ -33,7 +33,7 @@ All components are deloyed in the Docker containers
 - `ls-shared <username>`: List all shared data by user.
 - `get-shared <hash> <username>`: Get shared data by hash and username
 - `request-as-third-party <request_from> <data_of_user> <emergency_condition>`: Request data of patient from trusted party as third party
-- `request-as-trusted-party`: Request data of patient as trusted party
+- `request-as-trusted-party <request_from>`: Request data of patient as trusted party
 - `list-requests`: List of data requests received from users
 - `process-request <OID> <true/false>`: List of data requests received from users
 - `batch-upload <path_to_csv_file>`: Upload patient's data using csv file format
@@ -56,6 +56,15 @@ John,Sally,positive,doctorA doctorB,1
 ```
 
 ## Run and test healthcare system
+### Start the system
+```
+docker-compose -f docker/sawtooth-default.yaml up -d
+```
+### Register admin identity
+```
+docker run -t -i --rm --network docker_default -v "$(pwd)"/resources/data:/resources/data docker_healthcare-system-client-admin /app/main user -n admin -u rest-api-0:8008 -V tcp://validator-0:4004 -k /app/resources/keys/admin.priv
+exit
+```
 ### Run benchmark tests
 ```
 docker run -t -i --rm --network docker_default docker_healthcare-system-client-admin go test -v test/*_test.go
@@ -84,6 +93,11 @@ docker run -t -i --rm --network docker_default docker_healthcare-system-client-a
 1. Start and register 'doctorA' identity
 ```
 docker run -t -i --rm --network docker_default -v "$(pwd)"/resources/data:/resources/data docker_healthcare-system-client-doctor-a /app/main user -n doctorA -u rest-api-0:8008 -V tcp://validator-0:4004 -k /app/resources/keys/doctorA.priv
+exit
+```
+1.1. Start and register 'doctorB' identity
+```
+docker run -t -i --rm --network docker_default -v "$(pwd)"/resources/data:/resources/data docker_healthcare-system-client-doctor-b /app/main user -n doctorB -u rest-api-0:8008 -V tcp://validator-0:4004 -k /app/resources/keys/doctorB.priv
 exit
 ```
 
