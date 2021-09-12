@@ -134,6 +134,15 @@ services:
       - 4004
     stop_signal: SIGKILL
 
+  healthcare-system-client-doctor-b:
+    build:
+      context: ../
+      dockerfile: docker/client/Dockerfile
+    container_name: healthcare-system-client-doctor-b
+    expose:
+      - 4004
+    stop_signal: SIGKILL
+
   healthcare-system-client-thirdparty-a:
     build:
       context: ../
