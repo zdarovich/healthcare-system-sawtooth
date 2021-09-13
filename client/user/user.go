@@ -319,7 +319,7 @@ func (c *Client) OpenSharedDataToThirdParty(usernameFrom, usernameTo string, acc
 			}
 		}
 		now := time.Now()
-		expiration := now.Add(1 * time.Minute)
+		expiration := now.Add(5 * time.Minute)
 		dataName := fmt.Sprintf("shared_by_%s_%s", c.Name, di.Name)
 		keyAES := tpCrypto.GenerateRandomAESKey(lib.AESKeySize)
 		info, err := crypto.GenerateDataInfo(dataName, data, userTo.PublicKey, userTo.Name, tpCrypto.BytesToHex(keyAES), di.AccessType, expiration.Unix())
