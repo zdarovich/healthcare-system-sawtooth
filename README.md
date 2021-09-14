@@ -66,13 +66,32 @@ docker run -t -i --rm --network docker_default -v "$(pwd)"/resources/data:/resou
 exit
 ```
 ### Run benchmark tests
-```
-docker run -t -i --rm --network docker_default docker_healthcare-system-client-admin go test -v test/*_test.go
-```
+
 - `Test_ListUsers`: benchmarks the listing request of all users on the blockchain
 - `Test_Register_User_100_times`: benchmarks registration of the user on the blockchain. It registers users 100 times
 - `Test_User_Shares_Other_User_Gets_Data_100_times`: benchmarks data sharing by user A. Also, it tests shared data access by user B. It does it 100 times.
 - `Test_User_Uploads_Gets_Data_100_times`: benchmarks data upload by user A. Also, it tests data access by user A. It does it 100 times.
+
+#### Run all tests
+```
+docker run -t -i --rm --network docker_default docker_healthcare-system-client-admin go test -v test/*_test.go
+```
+#### Run 'Test_ListUsers' test
+```
+docker run -t -i --rm --network docker_default docker_healthcare-system-client-admin go test -v test/list_users_test.go test/stats_test.go
+```
+#### Run 'Test_Register_User_100_times' test
+```
+docker run -t -i --rm --network docker_default docker_healthcare-system-client-admin go test -v test/user_registration_test.go test/stats_test.go
+```
+#### Run 'Test_User_Shares_Other_User_Gets_Data_100_times' test
+```
+docker run -t -i --rm --network docker_default docker_healthcare-system-client-admin go test -v test/user_shares_other_user_gets_data_test.go test/stats_test.go
+```
+#### Run 'Test_User_Uploads_Gets_Data_100_times' test
+```
+docker run -t -i --rm --network docker_default docker_healthcare-system-client-admin go test -v test/user_uploads_gets_data_test.go test/stats_test.go
+```
 
 ### Benchmark output description
 - `Cumulative`: Aggregate of all sample durations.
