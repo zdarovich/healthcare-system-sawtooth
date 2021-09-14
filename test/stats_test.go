@@ -20,7 +20,7 @@ func init() {
 	rand.Seed(time.Now().UnixNano())
 	lib.Logger = logrus.New()
 	lib.Logger.Out = ioutil.Discard
-	lib.MongoDbUrl = "mongodb://mongodb:27017"
+	lib.MongoDbUrl = lib.DefaultMongoDbUrl
 	lib.ValidatorURL = lib.DefaultValidatorURL
 	lib.TPURL = lib.DefaultTPURL
 }

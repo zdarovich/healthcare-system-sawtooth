@@ -16,7 +16,7 @@ func Test_User_Shares_Other_User_Gets_Data_100_times(t *testing.T) {
 	stats := tachymeter.New(&tachymeter.Config{Size: requestSamples100})
 	testKeyPath := "resources/keys"
 
-	testUsersClients := make(map[string]*user.Client)
+	testUsersClients := make(map[string]string)
 	for i := 0; i < requestSamples100; i++ {
 		randName := uuid.New().String()
 		lib.GenerateKey(randName, testKeyPath)
@@ -25,7 +25,7 @@ func Test_User_Shares_Other_User_Gets_Data_100_times(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		testUsersClients[randName] = cli
+		testUsersClients[randName] = privKeyPath
 		err = cli.UserRegister()
 		if err != nil {
 			t.Fatal(err)
@@ -67,9 +67,20 @@ func Test_User_Shares_Other_User_Gets_Data_100_times(t *testing.T) {
 
 	success, fails = 0, 0
 	stats.Reset()
-	for _, cli := range testUsersClients {
+	for name, privKeyPath := range testUsersClients {
+		cli, err := user.NewUserClient(name, privKeyPath)
+		if err != nil {
+			t.Fatal(err)
+		}
+
 		start := time.Now()
-		_, _, err = cli.GetSharedPatientData(dataInfo.Hash, creator)
+		sharedData, err := cli.ListSharedPatientData(creator)
+		if err != nil {
+			t.Error(err)
+			fails++
+			continue
+		}
+		_, _, err = cli.GetSharedPatientData(sharedData[0].GetHash(), creator)
 		if err != nil {
 			t.Error(err)
 			fails++
