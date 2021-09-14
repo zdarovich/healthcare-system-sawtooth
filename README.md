@@ -69,12 +69,19 @@ exit
 ```
 docker run -t -i --rm --network docker_default docker_healthcare-system-client-admin go test -v test/*_test.go
 ```
+- `Test_ListUsers`: benchmarks the listing request of all users on the blockchain
+- `Test_Register_User_100_times`: benchmarks registration of the user on the blockchain. It registers users 100 times
+- `Test_User_Shares_Other_User_Gets_Data_100_times`: benchmarks data sharing by user A. Also, it tests shared data access by user B. It does it 100 times.
+- `Test_User_Uploads_Gets_Data_100_times`: benchmarks data upload by user A. Also, it tests data access by user A. It does it 100 times.
 
 ### Benchmark output description
 - `Cumulative`: Aggregate of all sample durations.
 - `HMean`: Event duration harmonic mean.
 - `Avg.`: Average event duration per sample.
-- `p<N>`: Nth %ile.
+- `p<N>`: Nth %ile. In common use, the percentile usually indicates that a certain percentage falls below that percentile.
+For example, if you score in the 25th percentile, then 25% of test takers are below your score.
+For example, the 25th percentile is the amount of successful transactions that are greater or equal to 25% of the scores.
+It is commonly used in the statistics, though can be ignored in this case.
 - `Long 5%`: Average event duration of the longest 5%.
 - `Short 5%`: Average event duration of the shortest 5%.
 - `Max`: Max observed event duration.

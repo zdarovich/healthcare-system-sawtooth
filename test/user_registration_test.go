@@ -10,6 +10,7 @@ import (
 	"time"
 )
 
+// Test_Register_User_100_times benchmarks registration of the user on the blockchain. It registers users 100 times.
 func Test_Register_User_100_times(t *testing.T) {
 	stats := tachymeter.New(&tachymeter.Config{Size: requestSamples100})
 	testKeyPath := "resources/keys"

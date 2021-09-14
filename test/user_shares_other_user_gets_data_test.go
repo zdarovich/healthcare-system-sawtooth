@@ -11,6 +11,7 @@ import (
 	"time"
 )
 
+// Test_User_Shares_Other_User_Gets_Data_100_times benchmarks data sharing by user A. Also, it tests shared data access by user B. It does it 100 times.
 func Test_User_Shares_Other_User_Gets_Data_100_times(t *testing.T) {
 	stats := tachymeter.New(&tachymeter.Config{Size: requestSamples100})
 	testKeyPath := "resources/keys"

@@ -11,6 +11,7 @@ import (
 	"time"
 )
 
+// Test_User_Uploads_Gets_Data_100_times benchmarks data upload by user A. Also, it tests data access by user A. It does it 100 times.
 func Test_User_Uploads_Gets_Data_100_times(t *testing.T) {
 	stats := tachymeter.New(&tachymeter.Config{Size: requestSamples100})
 	testKeyPath := "resources/keys"
