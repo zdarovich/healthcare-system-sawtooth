@@ -40,7 +40,7 @@ func Test_Register_User_100_times(t *testing.T) {
 	t.Log("User identity register benchmark \n")
 	t.Logf("succes rate: %f%% \n", float64(success)/float64(requestSamples100)*100)
 	t.Logf("fail rate: %f%% \n", float64(fails)/float64(requestSamples100)*100)
-	t.Logf("throughput(bytes/second): %f%% \n", float64(memoryUsed)/stats.Calc().Time.Cumulative.Seconds())
-	t.Logf("memory (bytes): %d%% \n", memoryUsed)
+	t.Logf("throughput(bytes/second): %f \n", float64(memoryUsed)/stats.Calc().Time.Cumulative.Seconds())
+	t.Logf("memory (bytes): %d \n", memoryUsed)
 	t.Log(stats.Calc())
 }
