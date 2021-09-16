@@ -16,6 +16,7 @@ func Test_User_Shares_Other_User_Gets_Data_100_times(t *testing.T) {
 	stats := tachymeter.New(&tachymeter.Config{Size: requestSamples100})
 	testKeyPath := "resources/keys"
 
+	var memoryUsed int
 	testUsersClients := make(map[string]string)
 	for i := 0; i < requestSamples100; i++ {
 		randName := uuid.New().String()
@@ -57,15 +58,18 @@ func Test_User_Shares_Other_User_Gets_Data_100_times(t *testing.T) {
 			fails++
 			continue
 		}
+		memoryUsed += len(data)
 		stats.AddTime(time.Since(start))
 		success++
 	}
 	t.Log("User shares data benchmark \n")
 	t.Logf("succes rate: %f%% \n", float64(success)/float64(requestSamples100)*100)
 	t.Logf("fail rate: %f%% \n", float64(fails)/float64(requestSamples100)*100)
+	t.Logf("throughput(bytes/second): %f%% \n", float64(memoryUsed)/stats.Calc().Time.Cumulative.Seconds())
 	t.Log(stats.Calc())
 
 	success, fails = 0, 0
+	memoryUsed = 0
 	stats.Reset()
 	for name, privKeyPath := range testUsersClients {
 		cli, err := user.NewUserClient(name, privKeyPath)
@@ -80,17 +84,24 @@ func Test_User_Shares_Other_User_Gets_Data_100_times(t *testing.T) {
 			fails++
 			continue
 		}
-		_, _, err = cli.GetSharedPatientData(sharedData[0].GetHash(), creator)
+		if len(sharedData) == 0 {
+			t.Error("no shared data was found")
+			fails++
+			continue
+		}
+		_, data, err = cli.GetSharedPatientData(sharedData[0].GetHash(), creator)
 		if err != nil {
 			t.Error(err)
 			fails++
 			continue
 		}
+		memoryUsed += len(data)
 		stats.AddTime(time.Since(start))
 		success++
 	}
 	t.Log("Other user gets shared data benchmark")
 	t.Logf("succes rate: %f%% \n", float64(success)/float64(requestSamples100)*100)
 	t.Logf("fail rate: %f%% \n", float64(fails)/float64(requestSamples100)*100)
+	t.Logf("throughput(bytes/second): %f%% \n", float64(memoryUsed)/stats.Calc().Time.Cumulative.Seconds())
 	t.Log(stats.Calc())
 }
