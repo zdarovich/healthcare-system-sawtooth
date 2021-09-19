@@ -9,25 +9,6 @@ import (
 	ellcurv "github.com/btcsuite/btcd/btcec"
 )
 
-// SHA224
-func SHA224BytesFromBytes(data []byte) []byte {
-	hashHandler := sha256.New224()
-	hashHandler.Write(data)
-	return hashHandler.Sum(nil)
-}
-
-func SHA224BytesFromHex(data string) []byte {
-	return SHA224BytesFromBytes(HexToBytes(data))
-}
-
-func SHA224HexFromBytes(data []byte) string {
-	return BytesToHex(SHA224BytesFromBytes(data))
-}
-
-func SHA224HexFromHex(data string) string {
-	return BytesToHex(SHA224BytesFromHex(data))
-}
-
 // SHA256
 func SHA256BytesFromBytes(data []byte) []byte {
 	hashHandler := sha256.New()
@@ -35,35 +16,8 @@ func SHA256BytesFromBytes(data []byte) []byte {
 	return hashHandler.Sum(nil)
 }
 
-func SHA256BytesFromHex(data string) []byte {
-	return SHA256BytesFromBytes(HexToBytes(data))
-}
-
 func SHA256HexFromBytes(data []byte) string {
 	return BytesToHex(SHA256BytesFromBytes(data))
-}
-
-func SHA256HexFromHex(data string) string {
-	return BytesToHex(SHA256BytesFromHex(data))
-}
-
-// SHA384
-func SHA384BytesFromBytes(data []byte) []byte {
-	hashHandler := sha512.New384()
-	hashHandler.Write(data)
-	return hashHandler.Sum(nil)
-}
-
-func SHA384BytesFromHex(data string) []byte {
-	return SHA384BytesFromBytes(HexToBytes(data))
-}
-
-func SHA384FromBytes(data []byte) string {
-	return BytesToHex(SHA384BytesFromBytes(data))
-}
-
-func SHA384HexFromHex(data string) string {
-	return BytesToHex(SHA384BytesFromHex(data))
 }
 
 // SHA512
@@ -118,41 +72,6 @@ func GenerateRandomAESKey(len int) []byte {
 		panic(err.Error())
 	}
 	return key
-}
-
-func NewAESKey(len int) string {
-	keyBytes := GenerateRandomAESKey(len)
-	return BytesToHex(keyBytes)
-}
-
-func AESKeyEncryptedByPublicKey(key, publicKey string) []byte {
-	pub, err := ellcurv.ParsePubKey(HexToBytes(publicKey), ellcurv.S256())
-	if err != nil {
-		panic(err)
-	}
-	result, err := ellcurv.Encrypt(pub, HexToBytes(key))
-	if err != nil {
-		panic(err)
-	}
-	return result
-}
-
-func AESKeyEncryption(key, data string) (result []byte, err error) {
-	cipher, err := aes.NewCipher(HexToBytes(key))
-	if err != nil {
-		return nil, err
-	}
-	cipher.Encrypt(result, HexToBytes(data))
-	return
-}
-
-func AESKeyDecryption(key, data string) (result []byte, err error) {
-	cipher, err := aes.NewCipher(HexToBytes(key))
-	if err != nil {
-		return nil, err
-	}
-	cipher.Decrypt(result, HexToBytes(data))
-	return
 }
 
 // Convert between Hex and Bytes
