@@ -42,5 +42,6 @@ func Test_Register_User_100_times(t *testing.T) {
 	t.Logf("fail rate: %f%% \n", float64(fails)/float64(requestSamples100)*100)
 	t.Logf("throughput(bytes/second): %f \n", float64(memoryUsed)/stats.Calc().Time.Cumulative.Seconds())
 	t.Logf("memory (bytes): %d \n", memoryUsed)
+	t.Logf("avg memory per transaction (bytes): %d \n", memoryUsed/requestSamples100)
 	t.Log(stats.Calc())
 }
