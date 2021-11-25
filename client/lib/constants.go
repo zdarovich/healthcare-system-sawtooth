@@ -34,7 +34,7 @@ const (
 	// ContentTypeOctetStream is the content type for request.
 	ContentTypeOctetStream string = "application/octet-stream"
 	// Mongo connection url
-	DefaultMongoDbUrl string = "mongodb://mongodb:27017"
+	DefaultMongoDbUrl string = "mongodb://localhost:27017"
 	// Mongo db name
 	MongoDbName string = "healthcare"
 
@@ -59,9 +59,9 @@ var (
 	// Logger provides log function.
 	Logger *logrus.Logger
 	// DefaultTPURL is the default Hyperledger Sawtooth rest api url.
-	DefaultTPURL = "http://rest-api-0:8008"
+	DefaultTPURL = "http://localhost:8008"
 	// DefaultValidatorURL is the default Hyperledger Sawtooth validator tcp url.
-	DefaultValidatorURL = "tcp://validator-0:4004"
+	DefaultValidatorURL = "tcp://localhost:4004"
 	// PrivateKeyFile is the path of private key.
 	PrivateKeyFile string
 	// DefaultKeyPath is the default path for key storing.

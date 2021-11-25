@@ -44,7 +44,11 @@ func Test_User_Shares_Other_User_Gets_Data_100_times(t *testing.T) {
 		t.Fatal(err)
 	}
 	dataName := uuid.New().String()
-	data := RandStringRunes(rand.Intn(100))
+	randInt := rand.Intn(100)
+	if randInt <= 0 {
+		randInt = 20
+	}
+	data := RandStringRunes(randInt)
 	dataInfo, err := cli.CreatePatientData(dataName, data, 0)
 	if err != nil {
 		t.Fatal(err)

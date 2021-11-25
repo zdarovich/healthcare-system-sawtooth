@@ -92,6 +92,14 @@ docker run -t -i --rm --network docker_default docker_healthcare-system-client-a
 ```
 docker run -t -i --rm --network docker_default docker_healthcare-system-client-admin go test -v test/user_uploads_gets_data_test.go test/stats_test.go
 ```
+#### Run 'Test_User_Creates_Concurently_Shares_Data_Up_To_100000_bytes.go' test
+```
+docker run -t -i --rm --network docker_default docker_healthcare-system-client-admin go test -v test/1_5_10_users_share_data_test.go test/stats_test.go
+```
+#### Run 'Test_User_Register' test
+```
+docker run -t -i --rm --network docker_default docker_healthcare-system-client-admin go test -v test/1_5_10_users_register_data_test.go test/stats_test.go
+```
 
 ### Benchmark output description
 - `Cumulative`: Aggregate of all sample durations.
@@ -311,6 +319,12 @@ ls-shared b
 ```
 get-shared fsdfsfsdfsd b
 ```
+
+## Process of bar chart creation
+1. Ran tests test/1_5_10_users_share_data_test.go, test/1_5_10_users_register_data_test.go
+2. Tests generated csv reports with performance metrics
+3. Run cmd/charts/main.go
+4. Previous step generated resources/charts/1_5_10_data_chart_bar.html
 
 ## Utility commands
 ### Delete all images, containers, volumes

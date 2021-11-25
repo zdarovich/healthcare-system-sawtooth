@@ -32,7 +32,11 @@ func Test_User_Uploads_Gets_Data_100_times(t *testing.T) {
 	var success, fails int
 	for i := 0; i < requestSamples100; i++ {
 		dataName := uuid.New().String()
-		data := RandStringRunes(rand.Intn(100))
+		randInt := rand.Intn(100)
+		if randInt <= 0 {
+			randInt = 20
+		}
+		data := RandStringRunes(randInt)
 
 		start := time.Now()
 		dataInfo, err := cli.CreatePatientData(dataName, data, 0)
