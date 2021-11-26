@@ -155,7 +155,7 @@ func Test_10_User_Register(t *testing.T) {
 	// Start wall time for all Goroutines.
 	var wg1 sync.WaitGroup
 
-	memory := 20
+	memory := 10
 	for sample := 0; sample < requestSamples; sample++ {
 		wallTimeStart := time.Now()
 
